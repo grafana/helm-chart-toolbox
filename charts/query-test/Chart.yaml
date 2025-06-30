@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+name: query-test
+description: A Helm Chart Toolbox test for running queries against various observability databases.
+type: application
+icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
+sources:
+  - https://github.com/grafana/k8s-monitoring-helm/tree/main/charts/k8s-monitoring-test
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+  - email: pete.wall@grafana.com
+    name: petewall
+dependencies: []

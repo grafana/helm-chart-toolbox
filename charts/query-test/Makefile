@@ -1,23 +1,18 @@
-VERSION = $(shell yq eval '.version' Chart.yaml)
-HAS_HELM_DOCS := $(shell command -v helm-docs;)
-HAS_HELM_UNITTEST := $(shell helm plugin list | grep unittest 2> /dev/null)
+SHELL = /bin/bash -x
+VERSION := $(shell yq eval '.version' Chart.yaml)
 IMAGE ?= $(shell yq eval '.image.registry + "/" + .image.repository' values.yaml)
 PLATFORMS ?= linux/arm64,linux/amd64
 
 .SECONDEXPANSION:
 README.md: values.yaml Chart.yaml $$(wildcard README.md.gotmpl)
-ifdef HAS_HELM_DOCS
-	helm-docs
-else
-	docker run --rm --volume "$(shell pwd):/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
-endif
+	docker run --rm --volume $(shell pwd):/chart ghcr.io/grafana/hackathon-13-helm-chart-toolbox-doc-generator:0.1.0 --chart /chart > $@
 
 Chart.lock: Chart.yaml
 	helm dependency update .
 	@touch Chart.lock # Ensure the timestamp is updated
 
 values.schema.json: values.yaml $$(wildcard schema-mods/*)
-	docker run -it --rm --volume $(shell pwd):/chart ghcr.io/grafana/hackathon-13-helm-chart-toolbox-schema-generator:0.1.0 /chart
+	docker run --rm --volume $(shell pwd):/chart ghcr.io/grafana/hackathon-13-helm-chart-toolbox-schema-generator:0.1.0 --chart /chart > $@
 
 build-image: .temp/image-built-$(VERSION)
 .temp/image-built-$(VERSION): container/Dockerfile container/query-test.sh
@@ -39,8 +34,4 @@ test: build
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm lint .
 	ct lint --lint-conf .lintconf.yaml --helm-dependency-extra-args=--skip-refresh --charts .
-ifdef HAS_HELM_UNITTEST
-	helm unittest .
-else
-	docker run --rm --volume $(shell pwd):/apps helmunittest/helm-unittest:3.17.0-0.7.1 .
-endif
+	docker run -t --rm --volume $(shell pwd):/apps helmunittest/helm-unittest:3.17.0-0.7.1 .

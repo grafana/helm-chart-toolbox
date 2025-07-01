@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+scriptDir=$(dirname "$(readlink -f "$0")")
+source "${scriptDir}/cluster/kind.sh"
+source "${scriptDir}/cluster/aks.sh"
+source "${scriptDir}/cluster/eks.sh"
+source "${scriptDir}/cluster/gke.sh"
+source "${scriptDir}/cluster/gke.sh"
+source "${scriptDir}/cluster/openshift.sh"
+
+usage() {
+  echo "USAGE: create-cluster [<test-dir>]"
+  echo ""
+  echo "Creates a Kubernetes Cluster for testing purposes."
+  echo ""
+  echo "  <test-dir>           - The test directory. Expects this file:"
+  echo "    test-plan.yaml        - The test plan."
+}
+
+testDir=$(pwd)
+testPlan="${testDir}/test-plan.yaml"
+clusterName=$(yq eval '.name + "test-cluster"' "${testPlan}")
+clusterType=$(yq eval '.cluster.type' "${testPlan}")
+if [ -z "${clusterType}" ]; then
+  echo "Cluster type not specified in test plan. Please set 'cluster.type' in ${testPlan}."
+  usage
+  exit 1
+fi
+
+set -eo pipefail  # Exit immediately if a command fails.
+
+echo "### Creating cluster: ${clusterName} of type: ${clusterType}"
+if [ "${clusterType}" = "kind" ]; then            createKindCluster "${testPlan}"
+elif [ "${clusterType}" = "aks" ]; then           createAKSCluster "${testPlan}"
+elif [ "${clusterType}" = "eks" ]; then           createEKSCluster "${testPlan}"
+elif [ "${clusterType}" = "gke" ]; then           createGKECluster "${testPlan}"
+elif [ "${clusterType}" = "gke-autopilot" ]; then createGKEAutopilotCluster "${testPlan}"
+elif [ "${clusterType}" = "openshift" ]; then     createOpenShiftCluster "${testPlan}"
+fi

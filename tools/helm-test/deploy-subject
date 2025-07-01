@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -eo pipefail  # Exit immediately if a command fails.
+
+testDir=$(pwd)
+testPlan="${testDir}/test-plan.yaml"
+
+releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
+chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
+if [ -n "${chartPath}" ]; then
+  chartName=$(helm show chart "${chartPath}" | yq .name)
+## TODO handle chartRepo, chart, and chartVersion for remote installation
+fi
+
+helmCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+
+# Check for values that are defined directly in the test plan
+chartValues=$(yq eval '.subject.values // ""' "${testPlan}")
+if [ -n "${chartValues}" ]; then
+  valuesFile=$(mktemp /tmp/values.yaml.XXXXXX)
+  trap 'rm -f "${valuesFile}"' EXIT  # Ensure the temporary file is removed on exit
+  echo "${chartValues}" > "${valuesFile}"
+  helmCommand+=(-f "${valuesFile}")
+fi
+
+# Check for a values file
+chartValuesFile=$(yq eval '.subject.valuesFile // ""' "${testPlan}")
+if [ -n "${chartValuesFile}" ]; then
+  helmCommand+=(-f "${chartValuesFile}")
+fi
+
+# Run the helm command
+echo "### Deploying Helm chart: ${chartName}"
+echo "${helmCommand[@]}"
+"${helmCommand[@]}"

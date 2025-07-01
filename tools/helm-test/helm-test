@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "USAGE: helm-test [<test-dir>]"
+  echo ""
+  echo "Runs a test against a real Kubernetes Cluster"
+  echo ""
+  echo "  <test-dir>           - The test directory. Expects this file:"
+  echo "    test-plan.yaml        - The test plan."
+}
+
+set -eo pipefail  # Exit immediately if a command fails.
+
+scriptDir=$(dirname "$(readlink -f "$0")")
+
+testDir=$(realpath $1)
+testPlan="${testDir}/test-plan.yaml"
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}"
+  usage
+  exit 1
+fi
+
+CREATE_CLUSTER=${CREATE_CLUSTER:-true}
+if [ "${CREATE_CLUSTER}" == "true" ]; then
+  "${scriptDir}/create-cluster" "${testDir}"
+fi
+
+"${scriptDir}/deploy-dependencies" "${testDir}"
+
+"${scriptDir}/deploy-subject" "${testDir}"
+
+"${scriptDir}/run-tests" "${testDir}"
+
+deleteCluster() {
+  "${scriptDir}/delete-cluster" "${testDir}"
+}
+
+DELETE_CLUSTER=${DELETE_CLUSTER:-false}
+if [ "${DELETE_CLUSTER}" == "true" ]; then
+  trap deleteCluster EXIT
+fi

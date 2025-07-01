@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+set -eo pipefail  # Exit immediately if a command fails.
+
+scriptDir=$(dirname "$(readlink -f "$0")")
+
+deployPresetFluxCD() {
+  echo "#### Deploying dependency preset: FluxCD"
+  flux install --components=source-controller,helm-controller > /dev/null
+}
+
+deployPresetGrafana() {
+  echo "#### Deploying dependency preset: Grafana"
+  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/presets/namespace-grafana.yaml"
+  overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
+  kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-grafana.yaml" -)
+}
+
+deployPresetPrometheus() {
+  echo "#### Deploying dependency preset: Prometheus"
+  kubectl apply -f "${scriptDir}/presets/helm-repository-prometheus.yaml"
+  kubectl apply -f "${scriptDir}/presets/namespace-prometheus.yaml"
+  overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
+  kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-prometheus.yaml" -)
+}
+
+deployPresetLoki() {
+  echo "#### Deploying dependency preset: Grafana Loki"
+  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/presets/namespace-loki.yaml"
+  overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
+  kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-loki.yaml" -)
+}
+
+deployPresetTempo() {
+  echo "#### Deploying dependency preset: Grafana Tempo"
+  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/presets/namespace-tempo.yaml"
+  overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
+  kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-tempo.yaml" -)
+}
+
+deployPresetPyroscope() {
+  echo "#### Deploying dependency preset: Grafana Pyroscope"
+  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/presets/namespace-pyroscope.yaml"
+  overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
+  kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-pyroscope.yaml" -)
+}
+
+deployTestQueryTest() {
+  echo "#### Deploying Test: Query Test"
+  kubectl apply -f "${scriptDir}/tests/helm-repository-toolbox.yaml"
+  kubectl apply -f "${scriptDir}/tests/namespace-toolbox.yaml"
+  export testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | cut -w -f1 -f2 | sed -e 's/\(.*\)\t\(.*\)/- name: \2\n  namespace: \1/g' | yq '{"spec": {"dependsOn": . // {}}}')
+
+  values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+  kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+}
+
+testDir=$(pwd)
+testPlan="${testDir}/test-plan.yaml"
+
+echo "### Deploying dependencies"
+dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
+if [ "${dependencyCount}" -ge 0 ]; then
+  for i in $(seq 0 "${dependencyCount}"); do
+    presetName=$(yq eval ".dependencies[${i}].preset" "${testPlan}")
+    if [ "${presetName}" == "fluxcd" ]; then        deployPresetFluxCD "${i}";
+    elif [ "${presetName}" == "grafana" ]; then     deployPresetGrafana "${i}";
+    elif [ "${presetName}" == "prometheus" ]; then  deployPresetPrometheus "${i}";
+    elif [ "${presetName}" == "loki" ]; then        deployPresetLoki "${i}";
+    elif [ "${presetName}" == "tempo" ]; then       deployPresetTempo "${i}";
+    elif [ "${presetName}" == "pyroscope" ]; then   deployPresetPyroscope "${i}";
+    fi
+
+    dependencyFile=$(yq eval ".dependencies[${i}].file" "${testPlan}")
+    if [ -f "${dependencyFile}" ]; then
+      echo "#### Deploying dependency by file: ${dependencyFile}"
+      kubectl apply -f "${dependencyFile}"
+    else
+      echo "Dependency file not found: ${dependencyFile}. Skipping."
+    fi
+  done
+fi
+
+echo "### Deploying tests"
+testCount=$(yq eval '.tests | length - 1' "${testPlan}")
+if [ "${testCount}" -ge 0 ]; then
+  for i in $(seq 0 "${testCount}"); do
+    testType=$(yq eval ".tests[${i}].type" "${testPlan}")
+    if [ "${testType}" == "query-test" ]; then deployTestQueryTest "${i}";
+    else
+      echo "Unknown test type: ${testType}. Skipping."
+    fi
+  done
+fi
+
+if kubectl api-resources --api-group=helm.toolkit.fluxcd.io/v2 --no-headers=true | grep helmreleases >/dev/null; then
+  echo "### Waiting for Helm releases to be ready"
+  FIVE_MINUTES=300
+
+  readyReleases=0
+  helmReleaseCount=$(flux get helmreleases --all-namespaces --no-header | wc -l | sed 's/^[[:space:]]*//')
+  for i in $(seq 1 ${FIVE_MINUTES}); do
+    newReadyReleases=$(flux get helmreleases --all-namespaces --status-selector ready=true --no-header | wc -l | sed 's/^[[:space:]]*//')
+    if [ "${readyReleases}" -ne "${newReadyReleases}" ]; then
+      readyReleases="${newReadyReleases}"
+      echo "#### Helm releases ready: ${readyReleases}/${helmReleaseCount}"
+    fi
+
+    if [ "${readyReleases}" -ge "${helmReleaseCount}" ]; then break; fi
+
+    if [ "${i}" -eq ${FIVE_MINUTES} ]; then
+      echo "A Helm release failed to become ready in ${FIVE_MINUTES} minutes"
+      flux get helmreleases --all-namespaces
+      exit 1
+    fi
+    sleep 1
+  done
+fi

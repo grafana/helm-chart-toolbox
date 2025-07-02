@@ -5,7 +5,7 @@ source "${scriptDir}/cluster/kind.sh"
 source "${scriptDir}/cluster/aks.sh"
 source "${scriptDir}/cluster/eks.sh"
 source "${scriptDir}/cluster/gke.sh"
-source "${scriptDir}/cluster/gke.sh"
+source "${scriptDir}/cluster/minikube.sh"
 source "${scriptDir}/cluster/openshift.sh"
 
 usage() {
@@ -30,10 +30,11 @@ fi
 set -eo pipefail  # Exit immediately if a command fails.
 
 echo "### Creating cluster: ${clusterName} of type: ${clusterType}"
-if [ "${clusterType}" = "kind" ]; then            createKindCluster "${testPlan}"
-elif [ "${clusterType}" = "aks" ]; then           createAKSCluster "${testPlan}"
+if [ "${clusterType}" = "aks" ]; then             createAKSCluster "${testPlan}"
 elif [ "${clusterType}" = "eks" ]; then           createEKSCluster "${testPlan}"
 elif [ "${clusterType}" = "gke" ]; then           createGKECluster "${testPlan}"
 elif [ "${clusterType}" = "gke-autopilot" ]; then createGKEAutopilotCluster "${testPlan}"
+elif [ "${clusterType}" = "kind" ]; then          createKindCluster "${testPlan}"
+elif [ "${clusterType}" = "minikube" ]; then      createMinikubeCluster "${testPlan}"
 elif [ "${clusterType}" = "openshift" ]; then     createOpenShiftCluster "${testPlan}"
 fi

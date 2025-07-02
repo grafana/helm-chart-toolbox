@@ -85,7 +85,7 @@ if [ "${dependencyCount}" -ge 0 ]; then
   done
 fi
 
-echo "### Deploying tests"
+echo "### Deploying test packages"
 testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do

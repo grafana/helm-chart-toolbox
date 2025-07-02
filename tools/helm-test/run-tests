@@ -11,9 +11,17 @@ usage() {
 
 set -eo pipefail  # Exit immediately if a command fails.
 
+testDir=$(pwd)
+testPlan="${testDir}/test-plan.yaml"
+
 echo "### Running tests"
-tests=$(helm list -n toolbox --no-headers --short)
-for test in $tests; do
-  echo "#### Running test: $test"
-  helm test "$test" -n toolbox --hide-notes --logs
-done
+testCount=$(yq eval '.tests | length - 1' "${testPlan}")
+if [ "${testCount}" -ge 0 ]; then
+  for i in $(seq 0 "${testCount}"); do
+    testType=$(yq eval ".tests[${i}].type" "${testPlan}")
+    echo "#### Running test: ${testType}"
+    if [ "${testType}" == "query-test" ]; then
+      helm test query-test --namespace toolbox --hide-notes --logs
+    fi
+  done
+fi

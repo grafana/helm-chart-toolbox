@@ -5,7 +5,7 @@ source "${scriptDir}/cluster/kind.sh"
 source "${scriptDir}/cluster/aks.sh"
 source "${scriptDir}/cluster/eks.sh"
 source "${scriptDir}/cluster/gke.sh"
-source "${scriptDir}/cluster/gke.sh"
+source "${scriptDir}/cluster/minikube.sh"
 source "${scriptDir}/cluster/openshift.sh"
 
 usage() {
@@ -30,10 +30,11 @@ fi
 set -eo pipefail  # Exit immediately if a command fails.
 
 echo "### Deleting cluster: ${clusterName} of type: ${clusterType}"
-if [ "${clusterType}" = "kind" ]; then            deleteKindCluster "${testPlan}"
-elif [ "${clusterType}" = "aks" ]; then           deleteAKSCluster "${testPlan}"
+if [ "${clusterType}" = "aks" ]; then             deleteAKSCluster "${testPlan}"
 elif [ "${clusterType}" = "eks" ]; then           deleteEKSCluster "${testPlan}"
 elif [ "${clusterType}" = "gke" ]; then           deleteGKECluster "${testPlan}"
 elif [ "${clusterType}" = "gke-autopilot" ]; then deleteGKEAutopilotCluster "${testPlan}"
+elif [ "${clusterType}" = "kind" ]; then          deleteKindCluster "${testPlan}"
+elif [ "${clusterType}" = "minikube" ]; then      deleteMinikubeCluster "${testPlan}"
 elif [ "${clusterType}" = "openshift" ]; then     deleteOpenShiftCluster "${testPlan}"
 fi

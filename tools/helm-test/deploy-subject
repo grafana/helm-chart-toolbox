@@ -29,7 +29,23 @@ if [ -n "${chartValuesFile}" ]; then
   helmCommand+=(-f "${chartValuesFile}")
 fi
 
+# Check for a namespace
+releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
+if [ -n "${releaseNamespace}" ]; then
+  helmCommand+=(--namespace "${releaseNamespace}" --create-namespace)
+fi
+
 # Run the helm command
 echo "### Deploying Helm chart: ${chartName}"
 echo "${helmCommand[@]}"
 "${helmCommand[@]}"
+
+# Run post-install options
+postInstallManifestCount=$(yq eval '.subject.postInstall.manifests | length - 1' "${testPlan}")
+if [ "${postInstallManifestCount}" -ge 0 ]; then
+  for i in $(seq 0 "${postInstallManifestCount}"); do
+    postInstallManifest=$(yq eval ".subject.postInstall.manifests[${i}]" "${testPlan}")
+    echo "#### Deploying Post-install manifest: ${postInstallManifest}"
+    kubectl apply -f "${postInstallManifest}"
+  done
+fi

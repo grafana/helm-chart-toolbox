@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eo pipefail  # Exit immediately if a command fails.
 
 usage() {
   echo "USAGE: run-tests [<test-dir>]"
@@ -9,11 +10,29 @@ usage() {
   echo "    test-plan.yaml        - The test plan."
 }
 
-set -eo pipefail  # Exit immediately if a command fails.
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
 
-testDir=$(pwd)
+testDir=$1
+
+if [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid director: ${testDir}"
+  usage
+  exit 1
+fi
+
+testDir=$(realpath "${testDir}")
 testPlan="${testDir}/test-plan.yaml"
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}"
+  usage
+  exit 1
+fi
 
+# Start of script
 echo; echo "### Running tests"
 testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then

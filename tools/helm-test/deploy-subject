@@ -1,10 +1,38 @@
 #!/usr/bin/env bash
-
 set -eo pipefail  # Exit immediately if a command fails.
 
-testDir=$(pwd)
-testPlan="${testDir}/test-plan.yaml"
+usage() {
+  echo "USAGE: deploy-subject [<test-dir>]"
+  echo ""
+  echo "Deploys the Helm chart to be tested."
+  echo ""
+  echo "  <test-dir>           - The test directory. Expects this file:"
+  echo "    test-plan.yaml        - The test plan."
+}
 
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
+
+testDir=$1
+
+if [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid director: ${testDir}"
+  usage
+  exit 1
+fi
+
+testDir=$(realpath "${testDir}")
+testPlan="${testDir}/test-plan.yaml"
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}"
+  usage
+  exit 1
+fi
+
+# Start of script
 releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
 chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
 if [ -n "${chartPath}" ]; then

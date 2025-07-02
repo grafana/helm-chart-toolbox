@@ -1,10 +1,41 @@
 #!/usr/bin/env bash
-
 set -eo pipefail  # Exit immediately if a command fails.
 
 scriptDir=$(dirname "$(readlink -f "$0")")
-fluxDeployed="false"
 
+usage() {
+  echo "USAGE: deploy-dependencies [<test-dir>]"
+  echo ""
+  echo "Deploys dependencies required for testing purposes."
+  echo ""
+  echo "  <test-dir>           - The test directory. Expects this file:"
+  echo "    test-plan.yaml        - The test plan."
+}
+
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
+
+testDir=$1
+
+if [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid director: ${testDir}"
+  usage
+  exit 1
+fi
+
+testDir=$(realpath "${testDir}")
+testPlan="${testDir}/test-plan.yaml"
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}"
+  usage
+  exit 1
+fi
+
+# Start of script
+fluxDeployed="false"
 deployFluxCD() {
   echo "#### Deploying dependency: FluxCD"
   flux install --components=source-controller,helm-controller 2> /dev/null
@@ -61,12 +92,8 @@ deployTestQueryTest() {
   kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
 }
 
-testDir=$(pwd)
-testPlan="${testDir}/test-plan.yaml"
-
 echo; echo "### Deploying dependencies"
 deployFluxCD
-
 dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
 if [ "${dependencyCount}" -ge 0 ]; then
   for i in $(seq 0 "${dependencyCount}"); do

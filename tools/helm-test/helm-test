@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+set -eo pipefail  # Exit immediately if a command fails.
+
+scriptDir=$(dirname "$(readlink -f "$0")")
 
 usage() {
   echo "USAGE: helm-test [<test-dir>]"
@@ -9,11 +12,21 @@ usage() {
   echo "    test-plan.yaml        - The test plan."
 }
 
-set -eo pipefail  # Exit immediately if a command fails.
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
 
-scriptDir=$(dirname "$(readlink -f "$0")")
+testDir=$1
 
-testDir=$(realpath $1)
+if [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid director: ${testDir}"
+  usage
+  exit 1
+fi
+
+testDir=$(realpath "${testDir}")
 testPlan="${testDir}/test-plan.yaml"
 if [ ! -f "${testPlan}" ]; then
   echo "test-plan.yaml file not found in ${testDir}"
@@ -21,6 +34,7 @@ if [ ! -f "${testPlan}" ]; then
   exit 1
 fi
 
+# Start of script
 CREATE_CLUSTER=${CREATE_CLUSTER:-true}
 if [ "${CREATE_CLUSTER}" == "true" ]; then
   "${scriptDir}/create-cluster" "${testDir}"

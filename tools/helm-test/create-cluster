@@ -42,7 +42,7 @@ if [ ! -f "${testPlan}" ]; then
 fi
 
 # Start of script
-clusterName=$(yq eval '.name + "test-cluster"' "${testPlan}")
+clusterName=$(yq eval '.name + "-test-cluster"' "${testPlan}")
 clusterType=$(yq eval '.cluster.type' "${testPlan}")
 if [ -z "${clusterType}" ]; then
   echo "Cluster type not specified in test plan. Please set 'cluster.type' in ${testPlan}."

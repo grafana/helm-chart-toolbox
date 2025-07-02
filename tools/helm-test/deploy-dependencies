@@ -107,21 +107,25 @@ if [ "${dependencyCount}" -ge 0 ]; then
 
     dependencyDirectory=$(yq eval ".dependencies[${i}].directory // \"\"" "${testPlan}")
     if [ -n "${dependencyDirectory}" ]; then
+      dependencyDirectory=$(realpath "${testDir}/${dependencyDirectory}")
       if [ -d "${dependencyDirectory}" ]; then
         echo "#### Deploying dependency by directory: ${dependencyDirectory}"
-        kubectl apply -f "${testDir}/${dependencyDirectory}"
+        kubectl apply -f "${dependencyDirectory}"
       else
-        echo "Dependency directory not found: ${dependencyDirectory}. Skipping."
+        echo "Dependency directory not found: ${dependencyDirectory}."
+        exit 1
       fi
     fi
 
     dependencyFile=$(yq eval ".dependencies[${i}].file // \"\"" "${testPlan}")
     if [ -n "${dependencyFile}" ]; then
+      dependencyFile=$(realpath "${testDir}/${dependencyFile}")
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
-        kubectl apply -f "${testDir}/${dependencyFile}"
+        kubectl apply -f "${dependencyFile}"
       else
-        echo "Dependency file not found: ${dependencyFile}. Skipping."
+        echo "Dependency file not found: ${dependencyFile}."
+        exit 1
       fi
     fi
 
@@ -146,7 +150,8 @@ if [ "${testCount}" -ge 0 ]; then
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
     if [ "${testType}" == "query-test" ]; then deployTestQueryTest "${i}";
     else
-      echo "Unknown test type: ${testType}. Skipping."
+      echo "Unknown test type: ${testType}."
+      exit 1
     fi
   done
 fi

@@ -36,12 +36,13 @@ fi
 releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
 chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
 if [ -n "${chartPath}" ]; then
-  chartName=$(helm show chart "${testDir}/${chartPath}" | yq .name)
+  chartPath=$(realpath "${testDir}/${chartPath}")
+  chartName=$(helm show chart "${chartPath}" | yq .name)
 ## TODO handle chartRepo, chart, and chartVersion for remote installation
 fi
 
-helmCommand=(helm upgrade --install --wait "${releaseName}" "${testDir}/${chartPath}")
-helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${testDir}/${chartPath}")
+helmCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
 
 # Check for a namespace
 releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
@@ -62,7 +63,13 @@ fi
 # Check for a values file
 chartValuesFile=$(yq eval '.subject.valuesFile // ""' "${testPlan}")
 if [ -n "${chartValuesFile}" ]; then
-  helmCommand+=(-f "${testDir}/${chartValuesFile}")
+  chartValuesFile=$(realpath "${testDir}/${chartValuesFile}")
+  if [ -f "${chartValuesFile}" ]; then
+    helmUpgradeCommand+=(-f "${chartValuesFile}")
+  else
+    echo "Upgrade values file not found: ${chartValuesFile}."
+    exit 1
+  fi
 fi
 
 # Run the helm command
@@ -75,8 +82,14 @@ postInstallFilesCount=$(yq eval '.subject.postInstall.files | length - 1' "${tes
 if [ "${postInstallFilesCount}" -ge 0 ]; then
   for i in $(seq 0 "${postInstallFilesCount}"); do
     postInstallFile=$(yq eval ".subject.postInstall.files[${i}]" "${testPlan}")
-    echo "#### Deploying Post-install manifest: ${postInstallFile}"
-    kubectl apply -f "${testDir}/${postInstallFile}"
+    postInstallFile=$(realpath "${testDir}/${postInstallFile}")
+    if [ -f "${postInstallFile}" ]; then
+      echo "#### Deploying Post-install manifest: ${postInstallFile}"
+      kubectl apply -f "${testDir}/${postInstallFile}"
+    else
+      echo "Post-install file not found: ${postInstallFile}."
+      exit 1
+    fi
   done
 fi
 
@@ -96,7 +109,13 @@ if [ -n "${upgradeValues}" ] || [ -n "${upgradeValuesFile}" ]; then
 
   # Check for a values file
   if [ -n "${upgradeValuesFile}" ]; then
-    helmUpgradeCommand+=(-f "${testDir}/${upgradeValuesFile}")
+    upgradeValuesFile=$(realpath "${testDir}/${upgradeValuesFile}")
+    if [ -f "${upgradeValuesFile}" ]; then
+      helmUpgradeCommand+=(-f "${upgradeValuesFile}")
+    else
+      echo "Upgrade values file not found: ${upgradeValuesFile}."
+      exit 1
+    fi
   fi
 
   # Run the helm upgrade command

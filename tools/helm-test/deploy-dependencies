@@ -3,10 +3,12 @@
 set -eo pipefail  # Exit immediately if a command fails.
 
 scriptDir=$(dirname "$(readlink -f "$0")")
+fluxDeployed="false"
 
 deployPresetFluxCD() {
   echo "#### Deploying dependency preset: FluxCD"
   flux install --components=source-controller,helm-controller > /dev/null
+  fluxDeployed="true"
 }
 
 deployPresetGrafana() {
@@ -75,10 +77,24 @@ if [ "${dependencyCount}" -ge 0 ]; then
     elif [ "${presetName}" == "pyroscope" ]; then   deployPresetPyroscope "${i}";
     fi
 
-    dependencyFile=$(yq eval ".dependencies[${i}].file" "${testPlan}")
+    dependencyFile=$(yq eval ".dependencies[${i}].file // \"\"" "${testPlan}")
     if [ -f "${dependencyFile}" ]; then
       echo "#### Deploying dependency by file: ${dependencyFile}"
       kubectl apply -f "${dependencyFile}"
+    else
+      echo "Dependency file not found: ${dependencyFile}. Skipping."
+    fi
+
+    dependencyManifest=$(yq eval ".dependencies[${i}].manifest // \"\"" "${testPlan}")
+    if [ -n "${dependencyManifest}" ]; then
+      manifestName=$(echo "${dependencyManifest}" | yq eval '.metadata.name' -)
+      manifestKind=$(echo "${dependencyManifest}" | yq eval '.kind' -)
+      echo "#### Deploying ${manifestKind} dependency: ${manifestName}"
+
+      manifestFile=$(mktemp /tmp/dependency-manifest.yaml.XXXXXX)
+      trap 'rm -f "${manifestFile}"' EXIT  # Ensure the temporary file is removed on exit
+      echo "${dependencyManifest}" > "${manifestFile}"
+      kubectl apply -f "${manifestFile}"
     else
       echo "Dependency file not found: ${dependencyFile}. Skipping."
     fi
@@ -97,7 +113,7 @@ if [ "${testCount}" -ge 0 ]; then
   done
 fi
 
-if kubectl api-resources --api-group=helm.toolkit.fluxcd.io/v2 --no-headers=true | grep helmreleases >/dev/null; then
+if [ "${fluxDeployed}" == "true" ]; then
   echo "### Waiting for Helm releases to be ready"
   FIVE_MINUTES=300
 

@@ -7,7 +7,11 @@ createKindCluster() {
   clusterConfigFile=$(yq eval '.cluster.configFile // ""' "${testPlan}")
 
   command=(kind create cluster --name "${clusterName}")
-  if [ -f "${clusterConfig}" ]; then command+=(--config <(echo "${clusterConfig}"))
+  if [ -n "${clusterConfig}" ]; then
+    configFile=$(mktemp /tmp/kind-cluster-config.yaml.XXXXXX)
+    trap 'rm -f "${configFile}"' EXIT  # Ensure the temporary file is removed on exit
+    echo "${clusterConfig}" > "${configFile}"
+    command+=(--config "${configFile}")
   elif [ -f "${clusterConfigFile}" ]; then command+=(--config "${clusterConfigFile}")
   fi
   if ! kind get clusters | grep -q "${clusterName}"; then

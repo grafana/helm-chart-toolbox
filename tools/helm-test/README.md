@@ -58,12 +58,14 @@ This section defines the dependencies to be deployed before testing the Helm cha
 services, or other Helm charts that the chart under test depends on. It is an array of objects, each with the following
 fields:
 
+FluxCD is always deployed to the cluster, because this helps managing deploying the dependencies and tests in parallel.
+
 | Field       | Description                                                                                          | Required | Default |
 |-------------|------------------------------------------------------------------------------------------------------|----------|---------|
 | `preset`    | A dependency preset to use. Supported presets: `grafana`, `prometheus`, `loki`, `tempo`, `pyroscope` | No       |         |
 | `overrides` | When using a preset, apply this YAML as an override to the preset values.                            | No       | `{}`    |
 | `file`      | The path to a Kubernetes manifest file to be applied.                                                | No       |         |
-| `manifest`  | A Kubernetes manifest file to be applied as inline YMAL.                                             | No       |         |
+| `manifest`  | A Kubernetes manifest file to be applied as inline YAML.                                             | No       |         |
 
 ### Tests
 

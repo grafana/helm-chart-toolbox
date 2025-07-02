@@ -109,7 +109,7 @@ if [ "${dependencyCount}" -ge 0 ]; then
     if [ -n "${dependencyDirectory}" ]; then
       if [ -d "${dependencyDirectory}" ]; then
         echo "#### Deploying dependency by directory: ${dependencyDirectory}"
-        kubectl apply -f "${dependencyDirectory}"
+        kubectl apply -f "${testDir}/${dependencyDirectory}"
       else
         echo "Dependency directory not found: ${dependencyDirectory}. Skipping."
       fi
@@ -119,7 +119,7 @@ if [ "${dependencyCount}" -ge 0 ]; then
     if [ -n "${dependencyFile}" ]; then
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
-        kubectl apply -f "${dependencyFile}"
+        kubectl apply -f "${testDir}/${dependencyFile}"
       else
         echo "Dependency file not found: ${dependencyFile}. Skipping."
       fi

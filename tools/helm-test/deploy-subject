@@ -62,7 +62,7 @@ fi
 # Check for a values file
 chartValuesFile=$(yq eval '.subject.valuesFile // ""' "${testPlan}")
 if [ -n "${chartValuesFile}" ]; then
-  helmCommand+=(-f "${chartValuesFile}")
+  helmCommand+=(-f "${testDir}/${chartValuesFile}")
 fi
 
 # Run the helm command
@@ -76,14 +76,14 @@ if [ "${postInstallFilesCount}" -ge 0 ]; then
   for i in $(seq 0 "${postInstallFilesCount}"); do
     postInstallFile=$(yq eval ".subject.postInstall.files[${i}]" "${testPlan}")
     echo "#### Deploying Post-install manifest: ${postInstallFile}"
-    kubectl apply -f "${postInstallFile}"
+    kubectl apply -f "${testDir}/${postInstallFile}"
   done
 fi
 
 
 upgradeValues=$(yq eval '.subject.upgrade.values // ""' "${testPlan}")
 upgradeValuesFile=$(yq eval '.subject.upgrade.valuesFile // ""' "${testPlan}")
-if [ -n "${upgradeValues}" -o -n "${upgradeValuesFile}" ]; then
+if [ -n "${upgradeValues}" ] || [ -n "${upgradeValuesFile}" ]; then
   # TODO: handle chartVersion
 
   # Check for values that are defined directly in the test plan
@@ -96,7 +96,7 @@ if [ -n "${upgradeValues}" -o -n "${upgradeValuesFile}" ]; then
 
   # Check for a values file
   if [ -n "${upgradeValuesFile}" ]; then
-    helmUpgradeCommand+=(-f "${upgradeValuesFile}")
+    helmUpgradeCommand+=(-f "${testDir}/${upgradeValuesFile}")
   fi
 
   # Run the helm upgrade command

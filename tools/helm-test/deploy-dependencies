@@ -6,8 +6,8 @@ scriptDir=$(dirname "$(readlink -f "$0")")
 fluxDeployed="false"
 
 deployFluxCD() {
-  echo "#### Deploying dependency preset: FluxCD"
-  flux install --components=source-controller,helm-controller > /dev/null
+  echo "#### Deploying dependency: FluxCD"
+  flux install --components=source-controller,helm-controller 2> /dev/null
   fluxDeployed="true"
 }
 
@@ -64,7 +64,7 @@ deployTestQueryTest() {
 testDir=$(pwd)
 testPlan="${testDir}/test-plan.yaml"
 
-echo "### Deploying dependencies"
+echo; echo "### Deploying dependencies"
 deployFluxCD
 
 dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
@@ -78,12 +78,24 @@ if [ "${dependencyCount}" -ge 0 ]; then
     elif [ "${presetName}" == "pyroscope" ]; then   deployPresetPyroscope "${i}";
     fi
 
+    dependencyDirectory=$(yq eval ".dependencies[${i}].directory // \"\"" "${testPlan}")
+    if [ -n "${dependencyDirectory}" ]; then
+      if [ -d "${dependencyDirectory}" ]; then
+        echo "#### Deploying dependency by directory: ${dependencyDirectory}"
+        kubectl apply -f "${dependencyDirectory}"
+      else
+        echo "Dependency directory not found: ${dependencyDirectory}. Skipping."
+      fi
+    fi
+
     dependencyFile=$(yq eval ".dependencies[${i}].file // \"\"" "${testPlan}")
-    if [ -f "${dependencyFile}" ]; then
-      echo "#### Deploying dependency by file: ${dependencyFile}"
-      kubectl apply -f "${dependencyFile}"
-    else
-      echo "Dependency file not found: ${dependencyFile}. Skipping."
+    if [ -n "${dependencyFile}" ]; then
+      if [ -f "${dependencyFile}" ]; then
+        echo "#### Deploying dependency by file: ${dependencyFile}"
+        kubectl apply -f "${dependencyFile}"
+      else
+        echo "Dependency file not found: ${dependencyFile}. Skipping."
+      fi
     fi
 
     dependencyManifest=$(yq eval ".dependencies[${i}].manifest // \"\"" "${testPlan}")
@@ -100,7 +112,7 @@ if [ "${dependencyCount}" -ge 0 ]; then
   done
 fi
 
-echo "### Deploying test packages"
+echo; echo "### Deploying test packages"
 testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do
@@ -113,7 +125,7 @@ if [ "${testCount}" -ge 0 ]; then
 fi
 
 if [ "${fluxDeployed}" == "true" ]; then
-  echo "### Waiting for Helm releases to be ready"
+  echo; echo "### Waiting for Helm releases to be ready"
   FIVE_MINUTES=300
 
   readyReleases=0

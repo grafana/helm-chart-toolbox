@@ -29,7 +29,7 @@ fi
 
 set -eo pipefail  # Exit immediately if a command fails.
 
-echo "### Deleting cluster: ${clusterName} of type: ${clusterType}"
+echo; echo "### Deleting cluster: ${clusterName} of type: ${clusterType}"
 if [ "${clusterType}" = "aks" ]; then             deleteAKSCluster "${testPlan}"
 elif [ "${clusterType}" = "eks" ]; then           deleteEKSCluster "${testPlan}"
 elif [ "${clusterType}" = "gke" ]; then           deleteGKECluster "${testPlan}"

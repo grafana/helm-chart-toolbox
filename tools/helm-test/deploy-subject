@@ -13,6 +13,14 @@ if [ -n "${chartPath}" ]; then
 fi
 
 helmCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+
+# Check for a namespace
+releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
+if [ -n "${releaseNamespace}" ]; then
+  helmCommand+=(--namespace "${releaseNamespace}" --create-namespace)
+  helmUpgradeCommand+=(--namespace "${releaseNamespace}" --create-namespace)
+fi
 
 # Check for values that are defined directly in the test plan
 chartValues=$(yq eval '.subject.values // ""' "${testPlan}")
@@ -29,14 +37,8 @@ if [ -n "${chartValuesFile}" ]; then
   helmCommand+=(-f "${chartValuesFile}")
 fi
 
-# Check for a namespace
-releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
-if [ -n "${releaseNamespace}" ]; then
-  helmCommand+=(--namespace "${releaseNamespace}" --create-namespace)
-fi
-
 # Run the helm command
-echo "### Deploying Helm chart: ${chartName}"
+echo; echo "### Deploying Helm chart: ${chartName}"
 echo "${helmCommand[@]}"
 "${helmCommand[@]}"
 
@@ -48,4 +50,29 @@ if [ "${postInstallFilesCount}" -ge 0 ]; then
     echo "#### Deploying Post-install manifest: ${postInstallFile}"
     kubectl apply -f "${postInstallFile}"
   done
+fi
+
+
+upgradeValues=$(yq eval '.subject.upgrade.values // ""' "${testPlan}")
+upgradeValuesFile=$(yq eval '.subject.upgrade.valuesFile // ""' "${testPlan}")
+if [ -n "${upgradeValues}" -o -n "${upgradeValuesFile}" ]; then
+  # TODO: handle chartVersion
+
+  # Check for values that are defined directly in the test plan
+  if [ -n "${upgradeValues}" ]; then
+    valuesFile=$(mktemp /tmp/values.yaml.XXXXXX)
+    trap 'rm -f "${valuesFile}"' EXIT  # Ensure the temporary file is removed on exit
+    echo "${upgradeValues}" > "${valuesFile}"
+    helmUpgradeCommand+=(-f "${valuesFile}")
+  fi
+
+  # Check for a values file
+  if [ -n "${upgradeValuesFile}" ]; then
+    helmUpgradeCommand+=(-f "${upgradeValuesFile}")
+  fi
+
+  # Run the helm upgrade command
+  echo; echo "### Upgrading Helm chart: ${chartName}"
+  echo "${helmUpgradeCommand[@]}"
+  "${helmUpgradeCommand[@]}"
 fi

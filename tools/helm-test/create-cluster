@@ -29,7 +29,7 @@ fi
 
 set -eo pipefail  # Exit immediately if a command fails.
 
-echo "### Creating cluster: ${clusterName} of type: ${clusterType}"
+echo; echo "### Creating cluster: ${clusterName} of type: ${clusterType}"
 if [ "${clusterType}" = "aks" ]; then             createAKSCluster "${testPlan}"
 elif [ "${clusterType}" = "eks" ]; then           createEKSCluster "${testPlan}"
 elif [ "${clusterType}" = "gke" ]; then           createGKECluster "${testPlan}"

@@ -1,5 +1,34 @@
 # Helm Test
 
+## Running the test
+
+Each test follows these steps:
+
+1. Create the cluster
+2. Deploy dependencies
+3. Deploy Helm chart
+4. Run tests
+5. Delete the cluster (only if the `DELETE_CLUSTER` environment variable is set to `true`)
+
+To run the test, simply run the following command:
+
+```bash
+helm-test
+```
+
+The test is re-entrant, so you can run it multiple times and completed steps will be skipped. This is useful for
+debugging or iterating on your test without having to recreate the cluster or redeploy dependencies.
+
+You can also run each step individually by using the following commands:
+
+```bash
+create-cluster
+deploy-dependencies
+deploy-subject
+run-tests
+delete-cluster
+```
+
 ## Test Plans
 
 The `test-plan.yaml` file defines the test plan for the Helm chart. It includes the following sections:
@@ -64,6 +93,7 @@ FluxCD is always deployed to the cluster, because this helps managing deploying 
 |-------------|------------------------------------------------------------------------------------------------------|----------|---------|
 | `preset`    | A dependency preset to use. Supported presets: `grafana`, `prometheus`, `loki`, `tempo`, `pyroscope` | No       |         |
 | `overrides` | When using a preset, apply this YAML as an override to the preset values.                            | No       | `{}`    |
+| `directory` | The path to directory of Kubernetes manifest files to be applied.                                    | No       |         |
 | `file`      | The path to a Kubernetes manifest file to be applied.                                                | No       |         |
 | `manifest`  | A Kubernetes manifest file to be applied as inline YAML.                                             | No       |         |
 
@@ -72,7 +102,7 @@ FluxCD is always deployed to the cluster, because this helps managing deploying 
 This section defines the tests to be run after the Helm chart has been deployed. It is an array of objects, each with
 the following fields:
 
-| Field          | Description                                                | Required | Default |
-|----------------|------------------------------------------------------------|----------|---------|
-| `type`         | The type of test to be run. Supported types: `query-test`. | Yes      |         |
-| `values`       | The values to be used for the test as inline YAML.         | No       | `{}`    |
+| Field    | Description                                                | Required | Default |
+|----------|------------------------------------------------------------|----------|---------|
+| `type`   | The type of test to be run. Supported types: `query-test`. | Yes      |         |
+| `values` | The values to be used for the test as inline YAML.         | No       | `{}`    |

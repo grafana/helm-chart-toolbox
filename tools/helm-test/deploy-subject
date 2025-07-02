@@ -41,11 +41,11 @@ echo "${helmCommand[@]}"
 "${helmCommand[@]}"
 
 # Run post-install options
-postInstallManifestCount=$(yq eval '.subject.postInstall.manifests | length - 1' "${testPlan}")
-if [ "${postInstallManifestCount}" -ge 0 ]; then
-  for i in $(seq 0 "${postInstallManifestCount}"); do
-    postInstallManifest=$(yq eval ".subject.postInstall.manifests[${i}]" "${testPlan}")
-    echo "#### Deploying Post-install manifest: ${postInstallManifest}"
-    kubectl apply -f "${postInstallManifest}"
+postInstallFilesCount=$(yq eval '.subject.postInstall.files | length - 1' "${testPlan}")
+if [ "${postInstallFilesCount}" -ge 0 ]; then
+  for i in $(seq 0 "${postInstallFilesCount}"); do
+    postInstallFile=$(yq eval ".subject.postInstall.files[${i}]" "${testPlan}")
+    echo "#### Deploying Post-install manifest: ${postInstallFile}"
+    kubectl apply -f "${postInstallFile}"
   done
 fi

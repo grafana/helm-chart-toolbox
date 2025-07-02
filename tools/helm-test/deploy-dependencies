@@ -86,7 +86,7 @@ deployTestQueryTest() {
   echo "#### Deploying Test: Query Test"
   kubectl apply -f "${scriptDir}/tests/helm-repository-toolbox.yaml"
   kubectl apply -f "${scriptDir}/tests/namespace-toolbox.yaml"
-  export testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | cut -w -f1 -f2 | sed -e 's/\(.*\)\t\(.*\)/- name: \2\n  namespace: \1/g' | yq '{"spec": {"dependsOn": . // {}}}')
+  export testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // {}}}')
 
   values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
   kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))

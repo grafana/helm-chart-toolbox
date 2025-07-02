@@ -85,7 +85,7 @@ if [ "${postInstallFilesCount}" -ge 0 ]; then
     postInstallFile=$(realpath "${testDir}/${postInstallFile}")
     if [ -f "${postInstallFile}" ]; then
       echo "#### Deploying Post-install manifest: ${postInstallFile}"
-      kubectl apply -f "${testDir}/${postInstallFile}"
+      kubectl apply -f "${postInstallFile}"
     else
       echo "Post-install file not found: ${postInstallFile}."
       exit 1

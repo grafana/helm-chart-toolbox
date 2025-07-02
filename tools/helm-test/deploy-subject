@@ -36,12 +36,12 @@ fi
 releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
 chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
 if [ -n "${chartPath}" ]; then
-  chartName=$(helm show chart "${chartPath}" | yq .name)
+  chartName=$(helm show chart "${testDir}/${chartPath}" | yq .name)
 ## TODO handle chartRepo, chart, and chartVersion for remote installation
 fi
 
-helmCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
-helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+helmCommand=(helm upgrade --install --wait "${releaseName}" "${testDir}/${chartPath}")
+helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${testDir}/${chartPath}")
 
 # Check for a namespace
 releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")

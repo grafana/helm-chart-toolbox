@@ -84,7 +84,7 @@ if [ -d "${CHART_DIR}/schema-mods" ]; then
       jq --indent 4 --arg name "${name}" 'del(.["$schema"])' "${file}" > "/tmp/${name}.tmp"
       jq --indent 4 \
         --arg name "${name}" \
-        --slurpfile data ""/tmp/${name}.tmp"" \
+        --slurpfile data "/tmp/${name}.tmp" \
         '.definitions[$name] = $data[0]' \
         /tmp/values.schema.generated.json > /tmp/values.schema.modded.json
       mv /tmp/values.schema.modded.json /tmp/values.schema.generated.json

@@ -65,11 +65,13 @@ if [ -n "${VALUES_FILE}" ]; then
     echo "Using template file: ${TEMPLATE_FILE}" 1>&2
     cp "${TEMPLATE_FILE}" "${CHART_DIR}/README.md.gotmpl"
   else
-    echo "# $(basename -s -values.yaml "${VALUES_FILE}")" > ${CHART_DIR}/README.md.gotmpl
-    echo "" >> ${CHART_DIR}/README.md.gotmpl
-    echo '<!-- textlint-disable terminology -->' >> ${CHART_DIR}/README.md.gotmpl
-    echo '{{ template "chart.valuesSection" . }}' >> ${CHART_DIR}/README.md.gotmpl
-    echo '<!-- textlint-enable terminology -->' >> ${CHART_DIR}/README.md.gotmpl
+    {
+      echo "# $(basename -s -values.yaml "${VALUES_FILE}")"
+      echo ""
+      echo '<!-- textlint-disable terminology -->'
+      echo '{{ template "chart.valuesSection" . }}'
+      echo '<!-- textlint-enable terminology -->'
+    } > ${CHART_DIR}/README.md.gotmpl
   fi
 else
   echo "Generating README based on Helm chart: ${CHART_DIR}" 1>&2

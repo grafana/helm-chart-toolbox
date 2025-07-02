@@ -20,14 +20,17 @@ fi
 
 testDir=$1
 
-if [ ! -d "${testDir}" ]; then
-  echo "Argument is not a valid director: ${testDir}"
+testDir=$1
+if [ -z "${testDir}" ]; then
+  testDir=$(pwd)
+elif [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid directory: ${testDir}"
   usage
   exit 1
+else
+  testPlan=$(realpath "${testDir}/test-plan.yaml")
 fi
 
-testDir=$(realpath "${testDir}")
-testPlan="${testDir}/test-plan.yaml"
 if [ ! -f "${testPlan}" ]; then
   echo "test-plan.yaml file not found in ${testDir}"
   usage

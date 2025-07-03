@@ -81,15 +81,16 @@ echo '---'
 echo '# Documentation: https://github.com/grafana/hackathon-13-helm-chart-toolbox/blob/main/tools/helm-test/TestPlan.md'
 echo 'apiVersion: helm-chart-toolbox.grafana.com/v1'
 echo 'kind: TestPlan'
+echo "name: ${testName}"
 echo ''
 echo 'subject:'
 if [ "$chartType" = "local" ]; then
-  echo "  chartPath: ${chartPath}"
+  echo "  path: ${chartPath}"
 else
-  echo "  chartRepo: ${chartRepo}"
-  echo "  chartName: ${chartName}"
+  echo "  repository: ${chartRepo}"
+  echo "  name: ${chartName}"
   if [ -n "${chartVersion}" ]; then
-    echo "  chartVersion: ${chartVersion}"
+    echo "  version: ${chartVersion}"
   fi
 fi
 echo '  # If you want to provide values for your Helm chart, uncomment one of the following lines:'

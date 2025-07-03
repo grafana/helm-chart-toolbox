@@ -65,7 +65,7 @@ chartValuesFile=$(yq eval '.subject.valuesFile // ""' "${testPlan}")
 if [ -n "${chartValuesFile}" ]; then
   chartValuesFile=$(realpath "${testDir}/${chartValuesFile}")
   if [ -f "${chartValuesFile}" ]; then
-    helmUpgradeCommand+=(-f "${chartValuesFile}")
+    helmCommand+=(-f "${chartValuesFile}")
   else
     echo "Upgrade values file not found: ${chartValuesFile}."
     exit 1

@@ -14,7 +14,8 @@ usage() {
   echo ""
   echo "Creates a Kubernetes Cluster for testing purposes."
   echo ""
-  echo "  <test-dir>           - The test directory. Expects this file:"
+  echo "  <test-dir>           - The test directory. If not provided, the current directory is used."
+  echo "                         Expects this file to exist:"
   echo "    test-plan.yaml        - The test plan."
 }
 

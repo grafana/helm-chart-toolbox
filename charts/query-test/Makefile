@@ -1,4 +1,4 @@
-SHELL = /bin/bash -x
+SHELL = /bin/bash
 VERSION := $(shell yq eval '.version' Chart.yaml)
 IMAGE ?= $(shell yq eval '.image.registry + "/" + .image.repository' values.yaml)
 PLATFORMS ?= linux/arm64,linux/amd64

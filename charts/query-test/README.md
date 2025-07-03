@@ -8,14 +8,10 @@
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 A Helm Chart Toolbox test for running queries against various observability databases.
 
-Use this chart for testing the [k8s-monitoring](https://github.com/grafana/k8s-monitoring-helm/tree/main/charts/k8s-monitoring) chart.
-
 ## How it works
 
-This chart provides a means for encoding queries. These queries are used to ensure that telemetry data collected by the k8s-monitoring chart is actually delivered to the desired destinations.
-<!--
-Who is using the queries? Is this accomplished with the test script below? If so, maybe "You can use these queries to ensure that ...."
--->
+This chart provides a means for encoding queries. These queries are used to ensure that telemetry data is truly present
+on the desired destinations.
 
 ## Usage
 

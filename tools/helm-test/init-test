@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -eo pipefail  # Exit immediately if a command fails.
+
+scriptDir=$(dirname "$(readlink -f "$0")")
+
+usage() {
+  echo "USAGE: init-test [<test-dir>]"
+  echo ""
+  echo "Interactively creates a test plan for testing a Helm chart."
+  echo ""
+  echo "  <test-dir>           - The test directory. If not provided, the current directory is used."
+}
+
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
+
+testDir=$1
+if [ -z "${testDir}" ]; then
+  testDir=$(pwd)
+elif [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid directory: ${testDir}"
+  usage
+  exit 1
+fi
+testPlan="$(realpath ${testDir})/test-plan.yaml"
+
+if [ -f "${testPlan}" ]; then
+  echo "test-plan.yaml already exists in ${testDir}"
+  exit 1
+fi
+
+# 1. Test name
+defaultTestName=$(basename "${testDir}")
+read -rp "What is the name of your test? [${defaultTestName}]: " testName
+testName=${testName:-$defaultTestName}
+
+# 2. Chart source
+echo "Do you want to test a Helm chart from:"
+select chartSource in "Local file system" "Helm repository"; do
+  case $REPLY in
+    1) chartType="local"; break ;;
+    2) chartType="repo"; break ;;
+    *) echo "Please select 1 or 2." ;;
+  esac
+done
+
+# 3. Chart path or repo
+if [ "$chartType" = "local" ]; then
+  read -rp "Path to the Helm chart (relative to test dir): " chartPath
+  chartName=$(helm show chart "${testDir}/${chartPath}" | yq .name)
+  echo "Found chart: ${chartName}"
+else
+  read -rp "Helm repository URL: " chartRepo
+  read -rp "Chart name: " chartName
+  read -rp "Chart version (optional): " chartVersion
+fi
+
+# 4. Kubernetes cluster type
+clusterTypes=("kind" "minikube" "aks" "doks" "eks" "gke" "openshift")
+echo "What type of Kubernetes cluster do you want to test against?"
+echo "Options: ${clusterTypes[*]}"
+read -rp "Cluster type: " clusterType
+
+# 5. Dependencies
+echo "Do you want to deploy any dependency presets? (comma-separated, or leave blank)"
+echo "Options: prometheus, loki, tempo, pyroscope, grafana"
+read -rp "Dependencies: " deps
+IFS=',' read -ra depArray <<< "$deps"
+
+# 6. Tests to run
+echo "What tests do you want to run? (comma-separated, or leave blank)"
+echo "Options: query-test"
+read -rp "Tests: " tests
+IFS=',' read -ra testArray <<< "$tests"
+
+{
+echo '---'
+echo '# Documentation: https://github.com/grafana/hackathon-13-helm-chart-toolbox/blob/main/tools/helm-test/TestPlan.md'
+echo 'apiVersion: helm-chart-toolbox.grafana.com/v1'
+echo 'kind: TestPlan'
+echo ''
+echo 'subject:'
+if [ "$chartType" = "local" ]; then
+  echo "  chartPath: ${chartPath}"
+else
+  echo "  chartRepo: ${chartRepo}"
+  echo "  chartName: ${chartName}"
+  if [ -n "${chartVersion}" ]; then
+    echo "  chartVersion: ${chartVersion}"
+  fi
+fi
+echo '  # If you want to provide values for your Helm chart, uncomment one of the following lines:'
+echo '  # values: {}'
+echo '  # valuesFile: ""'
+echo ''
+echo 'cluster:'
+echo '  type: '"${clusterType}"
+echo ''
+if [ "${#depArray[@]}" -gt 0 ]; then
+  echo 'dependencies:'
+  for dep in "${depArray[@]}"; do
+    dep=$(echo "$dep" | xargs)  # Trim whitespace
+    if [ -n "$dep" ]; then
+      echo "  - preset: ${dep}"
+    fi
+  done
+else
+  echo 'dependencies: []'
+fi
+echo ''
+if [ "${#testArray[@]}" -gt 0 ]; then
+  echo 'tests:'
+  for testType in "${testArray[@]}"; do
+    testType=$(echo "$testType" | xargs)  # Trim whitespace
+    if [ -n "$testType" ]; then
+      echo "  - type: ${testType}"
+      if [ "$testType" = "query-test" ]; then
+        echo '    values:'
+        echo '      tests:'
+        echo '        - env:'
+        echo '            PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query'
+        echo '          queries:'
+        echo '            - query: alloy_build_info{job="integrations/self"}'
+        echo '              type: promql'
+      fi
+    fi
+  done
+else
+  echo 'tests: []'
+fi
+} > "${testPlan}"
+
+echo "Test plan created at ${testPlan}"

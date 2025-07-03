@@ -38,7 +38,7 @@ read -rp "What is the name of your test? [${defaultTestName}]: " testName
 testName=${testName:-$defaultTestName}
 
 # 2. Chart source
-echo "Do you want to test a Helm chart from:"
+echo "🚢 Do you want to test a Helm chart from:"
 select chartSource in "Local file system" "Helm repository"; do
   case $REPLY in
     1) chartType="local"; break ;;
@@ -60,18 +60,18 @@ fi
 
 # 4. Kubernetes cluster type
 clusterTypes=("kind" "minikube" "aks" "doks" "eks" "gke" "openshift")
-echo "What type of Kubernetes cluster do you want to test against?"
+echo "☸️ What type of Kubernetes cluster do you want to test against?"
 echo "Options: ${clusterTypes[*]}"
 read -rp "Cluster type: " clusterType
 
 # 5. Dependencies
-echo "Do you want to deploy any dependency presets? (comma-separated, or leave blank)"
+echo "📦 Do you want to deploy any dependency presets? (comma-separated, or leave blank)"
 echo "Options: prometheus, loki, tempo, pyroscope, grafana"
 read -rp "Dependencies: " deps
 IFS=',' read -ra depArray <<< "$deps"
 
 # 6. Tests to run
-echo "What tests do you want to run? (comma-separated, or leave blank)"
+echo "✅ What tests do you want to run? (comma-separated, or leave blank)"
 echo "Options: query-test"
 read -rp "Tests: " tests
 IFS=',' read -ra testArray <<< "$tests"

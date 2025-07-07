@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "types": {
+            "type": "object",
+            "properties": {
+                "arrayOfStrings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "stringOrNull": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        }
+    }
+}

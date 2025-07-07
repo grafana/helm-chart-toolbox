@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "types": {
+            "type": "object",
+            "properties": {
+                "arrayField": {
+                    "type": "array"
+                },
+                "booleanField": {
+                    "type": "boolean"
+                },
+                "integerField": {
+                    "type": "integer"
+                },
+                "objectField": {
+                    "type": "object"
+                },
+                "stringField": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

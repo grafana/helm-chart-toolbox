@@ -1,0 +1,1 @@
+del(.properties.section.properties.objectWithExamples.properties)

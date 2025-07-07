@@ -1,0 +1,6 @@
+types:
+  stringField: "stringValue"
+  arrayField: []
+  objectField: {}
+  booleanField: true
+  integerField: 42

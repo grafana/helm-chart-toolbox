@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "types": {
+      "properties": {
+        "arrayOfStrings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stringOrNull": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

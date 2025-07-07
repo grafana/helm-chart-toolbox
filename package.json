@@ -1,0 +1,12 @@
+{
+  "name": "hackathon-13-helm-chart-toolbox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:grafana/hackathon-13-helm-chart-toolbox.git",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "json-diff": "^1.0.6"
+  }
+}

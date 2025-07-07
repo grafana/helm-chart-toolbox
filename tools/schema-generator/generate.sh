@@ -60,6 +60,9 @@ if [ -n "${VALUES_FILE}" ]; then
   CHART_DIR="/tmp/temp-chart"
   helm create "${CHART_DIR}" > /dev/null
   cp "${VALUES_FILE}" "${CHART_DIR}/values.yaml"
+  if [ -d "$(dirname "${VALUES_FILE}")/schema-mods" ]; then
+    cp -rf "$(dirname "${VALUES_FILE}")/schema-mods" "${CHART_DIR}/schema-mods"
+  fi
 else
   echo "Generating schema based on Helm chart: ${CHART_DIR}" 1>&2
 fi

@@ -162,21 +162,23 @@ if [ "${fluxDeployed}" == "true" ]; then
   FIVE_MINUTES=300
 
   readyReleases=0
-  helmReleaseCount=$(flux get helmreleases --all-namespaces --no-header | wc -l | sed 's/^[[:space:]]*//')
-  for i in $(seq 1 ${FIVE_MINUTES}); do
-    newReadyReleases=$(flux get helmreleases --all-namespaces --status-selector ready=true --no-header | wc -l | sed 's/^[[:space:]]*//')
-    if [ "${readyReleases}" -ne "${newReadyReleases}" ]; then
-      readyReleases="${newReadyReleases}"
-      echo "#### Helm releases ready: ${readyReleases}/${helmReleaseCount}"
-    fi
+  helmReleaseCount=$(kubectl get helmreleases --all-namespaces --output name | wc -l | sed 's/^[[:space:]]*//')
+  if [ "${helmReleaseCount}" -gt 0 ]; then
+    for i in $(seq 1 ${FIVE_MINUTES}); do
+      newReadyReleases=$(flux get helmreleases --all-namespaces --status-selector ready=true --no-header | wc -l | sed 's/^[[:space:]]*//')
+      if [ "${readyReleases}" -ne "${newReadyReleases}" ]; then
+        readyReleases="${newReadyReleases}"
+        echo "#### Helm releases ready: ${readyReleases}/${helmReleaseCount}"
+      fi
 
-    if [ "${readyReleases}" -ge "${helmReleaseCount}" ]; then break; fi
+      if [ "${readyReleases}" -ge "${helmReleaseCount}" ]; then break; fi
 
-    if [ "${i}" -eq ${FIVE_MINUTES} ]; then
-      echo "A Helm release failed to become ready in ${FIVE_MINUTES} minutes"
-      flux get helmreleases --all-namespaces
-      exit 1
-    fi
-    sleep 1
-  done
+      if [ "${i}" -eq ${FIVE_MINUTES} ]; then
+        echo "A Helm release failed to become ready in ${FIVE_MINUTES} minutes"
+        flux get helmreleases --all-namespaces
+        exit 1
+      fi
+      sleep 1
+    done
+  fi
 fi

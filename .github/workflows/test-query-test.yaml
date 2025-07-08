@@ -1,0 +1,84 @@
+---
+name: Test Schema Generator
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches: [main]
+    paths: [charts/query-test/**]
+  pull_request:
+    paths: [charts/query-test/**]
+  workflow_dispatch:
+
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: 'false'
+
+      - name: Run tests
+        working-directory: charts/query-test
+        run: make test
+
+  list-integration-tests:
+    name: List tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.list_tests.outputs.tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: 'false'
+
+      - name: List tests
+        id: list_tests
+        working-directory: charts/query-test/tests/integration
+        run: |
+          tests=$(find * -name test-plan.yaml -exec dirname {} \;)
+          echo "Tests: ${tests}"
+          echo "tests=$(echo "${tests}" | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')" >> "${GITHUB_OUTPUT}"
+
+  run-integration-tests:
+    name: Integration Test
+    needs: list-integration-tests
+    runs-on: ubuntu-latest
+    if: needs.list-tests.outputs.tests != '[]'
+    strategy:
+      matrix:
+        test: ${{ fromJson(needs.list-tests.outputs.tests) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: 'false'
+          path: source
+
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: 'false'
+          repository: grafana/hackathon-13-helm-chart-toolbox
+          path: helm-chart-toolbox
+
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@bda4c8187e436462be0d072e728b67afa215c593  # v2.6.3
+
+      - name: Install Kind CLI
+        uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3  # v1.12.0
+        with:
+          install_only: true
+
+      - name: Install Minikube CLI
+        uses: medyagh/setup-minikube@cea33675329b799adccc9526aa5daccc26cd5052  # v0.0.19
+        with:
+          start: false
+
+      - name: Run test
+        run: helm-chart-toolbox/tools/helm-test/helm-test "${TEST_DIRECTORY}"
+        env:
+          TEST_DIRECTORY: "source/charts/query-test/tests/integration/${{ matrix.test }}"
+          DELETE_CLUSTER: true

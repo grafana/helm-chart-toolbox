@@ -1,5 +1,5 @@
 ---
-name: Test Schema Generator
+name: Test Query Test
 
 # yamllint disable-line rule:truthy
 on:
@@ -37,7 +37,7 @@ jobs:
         id: list_tests
         working-directory: charts/query-test/tests/integration
         run: |
-          tests=$(find * -name test-plan.yaml -exec dirname {} \;)
+          tests=$(find "*" -name test-plan.yaml -exec dirname {} \;)
           echo "Tests: ${tests}"
           echo "tests=$(echo "${tests}" | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')" >> "${GITHUB_OUTPUT}"
 
@@ -45,10 +45,10 @@ jobs:
     name: Integration Test
     needs: list-integration-tests
     runs-on: ubuntu-latest
-    if: needs.list-tests.outputs.tests != '[]'
+    if: needs.list-integration-tests.outputs.tests != '[]'
     strategy:
       matrix:
-        test: ${{ fromJson(needs.list-tests.outputs.tests) }}
+        test: ${{ fromJson(needs.list-integration-tests.outputs.tests) }}
       fail-fast: false
     steps:
       - name: Checkout code

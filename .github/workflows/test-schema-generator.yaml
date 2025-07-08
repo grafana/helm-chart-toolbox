@@ -10,6 +10,8 @@ on:
     paths: [tools/schema-generator/**]
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ubuntu-latest

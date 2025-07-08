@@ -1,0 +1,35 @@
+---
+# Comment that will not show in docs
+types:
+  # -- Defines a string field
+  # @section -- Basic Types
+  stringField: "stringValue"
+  # -- Defines an array field
+  # @section -- Basic Types
+  arrayField: []
+  # -- Defines an object field
+  # @section -- Basic Types
+  objectField: {}
+  # -- Defines a boolean field
+  # @section -- Basic Types
+  booleanField: true
+  # -- Defines an integer field
+  # @section -- Basic Types
+  integerField: 42
+
+  # @ignore - This field will not show in the documentation
+  ignoredField: true
+
+# -- This will show in another section with all elements listed
+# @section -- Another Section
+anotherArray:
+  - item1
+  - item2
+  - item3
+
+# -- This will show all objects as the value
+# @section -- Another Section
+anotherObject:
+  item1: value1
+  item2: value2
+  item3: value3

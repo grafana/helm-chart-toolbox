@@ -1,0 +1,15 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: gke
+subject:
+  path: oci://registry-1.docker.io/bitnamicharts/nginx
+
+cluster:
+  clusterName: helm-test
+  appendRandomNumber: true
+  type: gke
+  args:
+    num-nodes: 1
+    zone: us-central1
+    labels: "source=helm-chart-toolbox-test"

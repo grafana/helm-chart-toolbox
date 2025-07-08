@@ -1,0 +1,12 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: eks
+subject:
+  path: oci://registry-1.docker.io/bitnamicharts/nginx
+
+cluster:
+  clusterName: helm-test
+  appendRandomNumber: true
+  type: eks
+  configFile: eks-cluster-config.yaml

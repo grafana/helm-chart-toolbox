@@ -35,15 +35,34 @@ fi
 
 # Start of script
 releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
+
+helmCommand=(helm upgrade --install --wait "${releaseName}")
+helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}")
+
+chart=$(yq eval '.subject.chart // ""' "${testPlan}")
+repository=$(yq eval '.subject.repository // ""' "${testPlan}")
 chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
-if [ -n "${chartPath}" ]; then
-  chartPath=$(realpath "${testDir}/${chartPath}")
-  chartName=$(helm show chart "${chartPath}" | yq .name)
-## TODO handle chartRepo, chart, and chartVersion for remote installation
+
+if [ -n "${chart}" ] && [ -n "${repository}" ]; then
+  helmCommand+=(--repo "${repository}" "${chart}")
+  helmUpgradeCommand+=(--repo "${repository}" "${chart}")
+  chartName=$(helm show chart --repo "${repository}" "${chart}" | yq .name)
 fi
 
-helmCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
-helmUpgradeCommand=(helm upgrade --install --wait "${releaseName}" "${chartPath}")
+if [ -n "${chartPath}" ]; then
+  if ! grep "^oci://" <<< "${chartPath}" > /dev/null; then
+    chartPath=$(realpath "${testDir}/${chartPath}")
+  fi
+  chartName=$(helm show chart "${chartPath}" | yq .name)
+  helmCommand+=("${chartPath}")
+  helmUpgradeCommand+=("${chartPath}")
+fi
+
+chartVersion=$(yq eval '.subject.version // ""' "${testPlan}")
+if [ -n "${chartVersion}" ]; then
+  helmCommand+=(--version "${chartVersion}")
+  helmUpgradeCommand+=(--version "${chartVersion}")
+fi
 
 # Check for a namespace
 releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")

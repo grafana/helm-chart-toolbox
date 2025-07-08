@@ -1,0 +1,12 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: kind
+subject:
+  path: oci://registry-1.docker.io/bitnamicharts/nginx
+  values:
+    service:
+      type: ClusterIP
+
+cluster:
+  type: kind

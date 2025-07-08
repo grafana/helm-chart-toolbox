@@ -1,0 +1,16 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: aks
+subject:
+  path: oci://registry-1.docker.io/bitnamicharts/nginx
+
+cluster:
+  clusterName: helm-test
+  appendRandomNumber: true
+  type: aks
+  args:
+    node-count: 1
+    tier: free
+    enable-managed-identity:
+    generate-ssh-keys:

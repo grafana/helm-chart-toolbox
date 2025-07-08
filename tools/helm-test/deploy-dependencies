@@ -45,48 +45,48 @@ deployFluxCD() {
 
 deployPresetGrafana() {
   echo "#### Deploying dependency preset: Grafana"
-  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
-  kubectl apply -f "${scriptDir}/presets/namespace-grafana.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/namespace-grafana.yaml"
   overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-grafana.yaml" -)
 }
 
 deployPresetPrometheus() {
   echo "#### Deploying dependency preset: Prometheus"
-  kubectl apply -f "${scriptDir}/presets/helm-repository-prometheus.yaml"
-  kubectl apply -f "${scriptDir}/presets/namespace-prometheus.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/helm-repository-prometheus.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/namespace-prometheus.yaml"
   overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-prometheus.yaml" -)
 }
 
 deployPresetLoki() {
   echo "#### Deploying dependency preset: Grafana Loki"
-  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
-  kubectl apply -f "${scriptDir}/presets/namespace-loki.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/namespace-loki.yaml"
   overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-loki.yaml" -)
 }
 
 deployPresetTempo() {
   echo "#### Deploying dependency preset: Grafana Tempo"
-  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
-  kubectl apply -f "${scriptDir}/presets/namespace-tempo.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/namespace-tempo.yaml"
   overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-tempo.yaml" -)
 }
 
 deployPresetPyroscope() {
   echo "#### Deploying dependency preset: Grafana Pyroscope"
-  kubectl apply -f "${scriptDir}/presets/helm-repository-grafana.yaml"
-  kubectl apply -f "${scriptDir}/presets/namespace-pyroscope.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/helm-repository-grafana.yaml"
+  kubectl apply -f "${scriptDir}/manifests/presets/namespace-pyroscope.yaml"
   overrides="$(yq eval "{\"spec\": {\"values\": .dependencies[${1}].overrides // {}}}" "${testPlan}")"
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/presets/preset-pyroscope.yaml" -)
 }
 
 deployTestQueryTest() {
   echo "#### Deploying Test: Query Test"
-  kubectl apply -f "${scriptDir}/tests/helm-repository-toolbox.yaml"
-  kubectl apply -f "${scriptDir}/tests/namespace-toolbox.yaml"
+  kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
+  kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
   testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // {}}}')
 
   values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"

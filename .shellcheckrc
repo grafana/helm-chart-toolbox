@@ -2,4 +2,4 @@
 external-sources=true
 
 # some files are sourced which can make some areas appear unreachable unless set
-source-path=./tools/helm-test/cluster
+source-path=./tools/helm-test/includes/cluster

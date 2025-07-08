@@ -2,12 +2,13 @@
 set -eo pipefail  # Exit immediately if a command fails.
 
 scriptDir=$(dirname "$(readlink -f "$0")")
-source "${scriptDir}/cluster/kind.sh"
-source "${scriptDir}/cluster/aks.sh"
-source "${scriptDir}/cluster/eks.sh"
-source "${scriptDir}/cluster/gke.sh"
-source "${scriptDir}/cluster/minikube.sh"
-source "${scriptDir}/cluster/openshift.sh"
+source "${scriptDir}/includes/cluster/common.sh"
+source "${scriptDir}/includes/cluster/kind.sh"
+source "${scriptDir}/includes/cluster/aks.sh"
+source "${scriptDir}/includes/cluster/eks.sh"
+source "${scriptDir}/includes/cluster/gke.sh"
+source "${scriptDir}/includes/cluster/minikube.sh"
+source "${scriptDir}/includes/cluster/openshift.sh"
 
 usage() {
   echo "USAGE: delete-cluster [<test-dir>]"
@@ -42,7 +43,7 @@ if [ ! -f "${testPlan}" ]; then
 fi
 
 # Start of script
-clusterName=$(yq eval '.name + "test-cluster"' "${testPlan}")
+clusterName=$(getClusterName "${testPlan}")
 clusterType=$(yq eval '.cluster.type' "${testPlan}")
 if [ -z "${clusterType}" ]; then
   echo "Cluster type not specified in test plan. Please set 'cluster.type' in ${testPlan}."

@@ -1,3 +1,4 @@
+---
 types:
   stringOrNull: "default is string"
   arrayOfStrings: []

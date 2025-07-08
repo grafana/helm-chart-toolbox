@@ -20,7 +20,7 @@ SHELL_SCRIPTS = $(shell find . -name "*.sh")
 .PHONY: lint-shell
 lint-shell: ## Lint Shell scripts
 	@echo "Linting Shell scripts..."
-	@shellcheck --rcfile=.shellcheckrc $(SHELL_SCRIPTS)
+	@shellcheck $(SHELL_SCRIPTS)
 
 YAML_FILES = $(shell find . -name "*.yaml")
 .PHONY: lint-yaml

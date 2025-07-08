@@ -1,5 +1,5 @@
 ---
-name: Test Query Test
+name: Test Helm Test
 
 # yamllint disable-line rule:truthy
 on:
@@ -13,28 +13,12 @@ on:
 permissions: {}
 
 jobs:
-#  run-unit-tests:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-#        with:
-#          persist-credentials: 'false'
-#
-#      - name: Set up Helm
-#        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112  # v4.3.0
-#
-#      - name: Set up chart-testing
-#        uses: helm/chart-testing-action@0d28d3144d3a25ea2cc349d6e59901c4ff469b3b  # v2.7.0
-#
-#      - name: Run tests
-#        working-directory: tools/helm-test
-#        run: make test
-
   list-tests:
     name: List tests
     runs-on: ubuntu-latest
     outputs:
-      tests: ${{ steps.list_tests.outputs.tests }}
+      localTests: ${{ steps.list_tests.outputs.localTests }}
+      cloudTests: ${{ steps.list_tests.outputs.cloudTests }}
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -45,18 +29,27 @@ jobs:
         id: list_tests
         working-directory: tools/helm-test/tests
         run: |
-          tests=$(find . -name test-plan.yaml -exec dirname {} \;)
-          echo "Tests: ${tests}"
-          echo "tests=$(echo "${tests}" | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')" >> "${GITHUB_OUTPUT}"
+          localTests=()
+          cloudTests=()
+          for testPlan in */test-plan.yaml; do
+            clusterType="$(yq '.cluster.type' "${testPlan}")"
+            if [[ "${clusterType}" == "kind" ]] || [[ "${clusterType}" == "minikube" ]]; then
+              localTests+=("$(dirname "${testPlan}")")
+            else
+              cloudTests+=("$(dirname "${testPlan}")")
+            fi
+          done
+          echo "localTests=$(printf '%s\n' "${localTests[@]}" | jq --raw-input | jq --slurp --compact-output)" >> "${GITHUB_OUTPUT}"
+          echo "cloudTests=$(printf '%s\n' "${cloudTests[@]}" | jq --raw-input | jq --slurp --compact-output)" >> "${GITHUB_OUTPUT}"
 
   run-integration-tests:
     name: Integration Test
     needs: list-tests
     runs-on: ubuntu-latest
-    if: needs.list-tests.outputs.tests != '[]'
+    if: needs.list-tests.outputs.localTests != '[]'
     strategy:
       matrix:
-        test: ${{ fromJson(needs.list-tests.outputs.tests) }}
+        test: ${{ fromJson(needs.list-tests.outputs.localTests) }}
       fail-fast: false
     steps:
       - name: Checkout code
@@ -72,28 +65,20 @@ jobs:
           repository: grafana/hackathon-13-helm-chart-toolbox
           path: helm-chart-toolbox
 
-      - name: Get Cluster Type
-        id: get_cluster_type
-        working-directory: tools/helm-test/tests
-        run: echo "clusterType=$(yq '.cluster.type' "${{ matrix.test }}/test-plan.yaml")" >> "${GITHUB_OUTPUT}"
-
       - name: Install Flux CLI
         uses: fluxcd/flux2/action@bda4c8187e436462be0d072e728b67afa215c593  # v2.6.3
 
       - name: Install Kind CLI
-        if: steps.get_cluster_type.outputs.clusterType == 'kind'
         uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3  # v1.12.0
         with:
           install_only: true
 
       - name: Install Minikube CLI
-        if: steps.get_cluster_type.outputs.clusterType == 'kind'
         uses: medyagh/setup-minikube@cea33675329b799adccc9526aa5daccc26cd5052  # v0.0.19
         with:
           start: false
 
       - name: Run test
-        if: steps.get_cluster_type.outputs.clusterType == 'kind' || steps.get_cluster_type.outputs.clusterType == 'minikube'
         run: helm-chart-toolbox/tools/helm-test/helm-test "${TEST_DIRECTORY}"
         env:
           TEST_DIRECTORY: "source/tools/helm-test/tests/${{ matrix.test }}"

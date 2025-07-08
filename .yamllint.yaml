@@ -7,6 +7,7 @@ yaml-files:
 ignore:
   - .git
   - charts/**/templates
+  - kubeconfig.yaml
   - node_modules
 
 extends: default

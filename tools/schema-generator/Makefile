@@ -1,5 +1,5 @@
 VERSION = $(shell cat version)
-IMAGE ?= "ghcr.io/grafana/hackathon-13-helm-chart-toolbox-schema-generator"
+IMAGE = "ghcr.io/grafana/helm-chart-toolbox-schema-generator"
 PLATFORMS ?= linux/amd64  # Only amd64 is supported
 
 ##@ Container Image
@@ -13,6 +13,10 @@ build: .temp/image-built-$(VERSION)  ## Build the container image
 .PHONY: push
 push: .temp/image-built-$(VERSION) ## Push the container image
 	docker push $(IMAGE):$(VERSION)
+
+push-latest: .temp/image-built-$(VERSION) ## Push the container image with 'latest' tag
+	docker tag $(IMAGE):$(VERSION) $(IMAGE):latest
+	docker push $(IMAGE):latest
 
 .PHONY: clean
 clean: ## Clean up generated files

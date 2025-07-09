@@ -46,5 +46,5 @@
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/hackathon-13-helm-chart-toolbox/blob/main/charts/query-test) |
+| tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test) |
 <!-- textlint-enable terminology -->

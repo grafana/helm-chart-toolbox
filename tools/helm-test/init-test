@@ -78,7 +78,7 @@ IFS=',' read -ra testArray <<< "$tests"
 
 {
 echo '---'
-echo '# Documentation: https://github.com/grafana/hackathon-13-helm-chart-toolbox/blob/main/tools/helm-test/TestPlan.md'
+echo '# Documentation: https://github.com/grafana/helm-chart-toolbox/blob/main/tools/helm-test/TestPlan.md'
 echo 'apiVersion: helm-chart-toolbox.grafana.com/v1'
 echo 'kind: TestPlan'
 echo "name: ${testName}"

@@ -6,6 +6,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/grafana/hackathon-13-helm-chart-toolbox
+  url: https://github.com/grafana/helm-chart-toolbox
   ref:
     branch: main

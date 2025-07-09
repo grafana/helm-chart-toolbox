@@ -14,5 +14,5 @@ spec:
         name: helm-chart-toolbox
         namespace: flux-system
       interval: 1m
-  dependsOn: {}
+  dependsOn: []
   values: {}

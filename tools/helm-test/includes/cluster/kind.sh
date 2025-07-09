@@ -26,7 +26,7 @@ createKindCluster() {
 
 deleteKindCluster() {
   local testPlan=$1
-  clusterName=$(yq eval '.name + "-test-cluster"' "${testPlan}")
+  clusterName=$(getClusterName "${testPlan}")
   deleteClusterCommand=(kind delete cluster --name "${clusterName}")
 
   if ! "${deleteClusterCommand[@]}"; then

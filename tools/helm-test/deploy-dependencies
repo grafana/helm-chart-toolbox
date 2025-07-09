@@ -45,15 +45,15 @@ deployFluxCD() {
 }
 
 deployTestParameters() {
-  echo "#### Deploying ConfigMap: test-parameters"
+  echo "#### Deploying dependency preset: test-parameters"
   clusterName=$(getClusterName "${testPlan}")
   randomNumber=$(getRandomNumber "${testPlan}")
+  namespace="$(yq eval ".dependencies[${1}].namespace // \"default\"" "${testPlan}")"
 
-  kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
   if [ -z "${randomNumber}" ]; then
-    kubectl apply -f <(yq eval ".data.cluster = \"${clusterName}\" | del(.data.randomNumber)" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
+    kubectl apply --namespace "${namespace}" -f <(yq eval ".data.clusterName = \"${clusterName}\" | del(.data.randomNumber)" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
   else
-    kubectl apply -f <(yq eval ".data.cluster = \"${clusterName}\" | .data.randomNumber = \"${randomNumber}\"" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
+    kubectl apply --namespace "${namespace}" -f <(yq eval ".data.clusterName = \"${clusterName}\" | .data.randomNumber = \"${randomNumber}\"" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
   fi
 }
 
@@ -100,26 +100,32 @@ deployPresetPyroscope() {
 deployTestQueryTest() {
   echo "#### Deploying Test: Query Test"
   kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
-  kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
-  testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // {}}}')
-
-  values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-  kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+  testDependencies='{"spec": {"dependsOn": []}}'
+  helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
+  if [ "${helmReleaseCount}" -gt 0 ]; then
+    testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/manifests/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+  else
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/manifests/tests/helmrelease-query-test.yaml" <(echo "${values}"))
+  fi
 }
 
 echo; echo "### Deploying dependencies"
 deployFluxCD
-deployTestParameters
+kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
 
 dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
 if [ "${dependencyCount}" -ge 0 ]; then
   for i in $(seq 0 "${dependencyCount}"); do
     presetName=$(yq eval ".dependencies[${i}].preset" "${testPlan}")
-    if [ "${presetName}" == "grafana" ]; then       deployPresetGrafana "${i}";
-    elif [ "${presetName}" == "prometheus" ]; then  deployPresetPrometheus "${i}";
-    elif [ "${presetName}" == "loki" ]; then        deployPresetLoki "${i}";
-    elif [ "${presetName}" == "tempo" ]; then       deployPresetTempo "${i}";
-    elif [ "${presetName}" == "pyroscope" ]; then   deployPresetPyroscope "${i}";
+    if [ "${presetName}" == "grafana" ]; then           deployPresetGrafana "${i}";
+    elif [ "${presetName}" == "prometheus" ]; then      deployPresetPrometheus "${i}";
+    elif [ "${presetName}" == "loki" ]; then            deployPresetLoki "${i}";
+    elif [ "${presetName}" == "tempo" ]; then           deployPresetTempo "${i}";
+    elif [ "${presetName}" == "pyroscope" ]; then       deployPresetPyroscope "${i}";
+    elif [ "${presetName}" == "test-parameters" ]; then deployTestParameters "${i}";
     fi
 
     dependencyDirectory=$(yq eval ".dependencies[${i}].directory // \"\"" "${testPlan}")
@@ -139,7 +145,8 @@ if [ "${dependencyCount}" -ge 0 ]; then
       dependencyFile=$(realpath "${testDir}/${dependencyFile}")
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
-        kubectl apply -f "${dependencyFile}"
+        namespace=$(yq eval ".dependencies[${i}].namespace // \"default\"" "${testPlan}")
+        kubectl apply --namespace "${namespace}" -f "${dependencyFile}"
       else
         echo "Dependency file not found: ${dependencyFile}."
         exit 1

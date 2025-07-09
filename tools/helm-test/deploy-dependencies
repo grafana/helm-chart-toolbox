@@ -145,8 +145,12 @@ if [ "${dependencyCount}" -ge 0 ]; then
       dependencyFile=$(realpath "${testDir}/${dependencyFile}")
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
-        namespace=$(yq eval ".dependencies[${i}].namespace // \"default\"" "${testPlan}")
-        kubectl apply --namespace "${namespace}" -f "${dependencyFile}"
+        namespace=$(yq eval ".dependencies[${i}].namespace // \"\"" "${testPlan}")
+        if [ -z "${namespace}" ]; then
+          kubectl apply -f "${dependencyFile}"
+        else
+          kubectl apply --namespace "${namespace}" -f "${dependencyFile}"
+        fi
       else
         echo "Dependency file not found: ${dependencyFile}."
         exit 1

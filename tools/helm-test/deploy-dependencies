@@ -2,6 +2,7 @@
 set -eo pipefail  # Exit immediately if a command fails.
 
 scriptDir=$(dirname "$(readlink -f "$0")")
+source "${scriptDir}/includes/cluster/common.sh"
 
 usage() {
   echo "USAGE: deploy-dependencies [<test-dir>]"
@@ -41,6 +42,19 @@ deployFluxCD() {
   echo "#### Deploying dependency: FluxCD"
   flux install --components=source-controller,helm-controller 2> /dev/null
   fluxDeployed="true"
+}
+
+deployTestParameters() {
+  echo "#### Deploying ConfigMap: test-parameters"
+  clusterName=$(getClusterName "${testPlan}")
+  randomNumber=$(getRandomNumber "${testPlan}")
+
+  kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
+  if [ -z "${randomNumber}" ]; then
+    kubectl apply -f <(yq eval ".data.cluster = \"${clusterName}\" | del(.data.randomNumber)" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
+  else
+    kubectl apply -f <(yq eval ".data.cluster = \"${clusterName}\" | .data.randomNumber = \"${randomNumber}\"" "${scriptDir}/manifests/tests/configmap-test-parameters.yaml")
+  fi
 }
 
 deployPresetGrafana() {
@@ -95,6 +109,8 @@ deployTestQueryTest() {
 
 echo; echo "### Deploying dependencies"
 deployFluxCD
+deployTestParameters
+
 dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
 if [ "${dependencyCount}" -ge 0 ]; then
   for i in $(seq 0 "${dependencyCount}"); do

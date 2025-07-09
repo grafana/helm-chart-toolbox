@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-parameters
+  namespace: toolbox
+data:
+  cluster: "Will be replaced with the true cluster name"
+  randomNumber: "If .cluster.appendRandomNumber is true, this will be replaced with that random number"

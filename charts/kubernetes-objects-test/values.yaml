@@ -44,7 +44,14 @@ pod:
   # -- Service Account to use for the test runner pods.
   # @section -- Job settings
   serviceAccount:
+    create: true
+
     name: ""
+
+  # -- RBAC settings for the service account.
+  # @section -- Job settings
+  rbac:
+    create: true
 
 image:
   # -- Test pod image registry.

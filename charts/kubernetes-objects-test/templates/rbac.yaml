@@ -1,0 +1,32 @@
+{{- if .Values.pod.serviceAccount.create }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" . }}
+  namespace: {{ $.Release.Namespace }}
+{{- end }}
+{{- if .Values.pod.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" . }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}

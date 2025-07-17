@@ -20,9 +20,7 @@ metadata:
     {{ $key }}: {{ $val | quote }}
     {{- end}}
 spec:
-  {{- if $.Values.pod.serviceAccount.name }}
-  serviceAccountName: {{ $.Values.pod.serviceAccount.name }}
-  {{- end }}
+  serviceAccountName: {{ include "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" . }}
   {{- if or $.Values.global.image.pullSecrets $.Values.image.pullSecrets }}
   imagePullSecrets:
     {{- if $.Values.global.image.pullSecrets }}

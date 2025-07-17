@@ -54,9 +54,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "helm-chart-toolbox.kubernetes-objects-test.fullname" .) .Values.serviceAccount.name }}
+{{- if .Values.pod.serviceAccount.create }}
+{{- default (include "helm-chart-toolbox.kubernetes-objects-test.fullname" .) .Values.pod.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- default "default" .Values.pod.serviceAccount.name }}
 {{- end }}
 {{- end }}

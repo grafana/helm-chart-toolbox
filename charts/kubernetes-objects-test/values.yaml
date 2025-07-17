@@ -39,7 +39,7 @@ pod:
   
   # -- Extra environment variables to add to the test runner pod.
   # @section -- Job settings
-  extraEnv: {}
+  extraEnv: []
 
   # -- Tolerations to apply to the test runner pod.
   # @section -- Job settings

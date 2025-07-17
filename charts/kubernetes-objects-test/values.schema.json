@@ -60,7 +60,7 @@
                     "type": "object"
                 },
                 "extraEnv": {
-                    "type": "object"
+                    "type": "array"
                 },
                 "extraLabels": {
                     "type": "object"

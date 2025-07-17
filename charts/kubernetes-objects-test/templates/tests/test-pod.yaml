@@ -62,10 +62,9 @@ spec:
       env:
         - name: KUBERNETES_VERSION
           value: "{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}"
-        {{- range $key, $value := $.Values.pod.extraEnv }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
+      {{- with $.Values.pod.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumeMounts:
         - name: queries
           mountPath: /etc/test

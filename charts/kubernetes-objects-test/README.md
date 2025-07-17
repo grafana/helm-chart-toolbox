@@ -83,7 +83,7 @@ Each check runs sequentially, and the test fails if any of the checks return an 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | pod.extraAnnotations | object | `{}` | Extra annotations to add to the test runner pod. |
-| pod.extraEnv | object | `{}` | Extra environment variables to add to the test runner pod. |
+| pod.extraEnv | list | `[]` | Extra environment variables to add to the test runner pod. |
 | pod.extraLabels | object | `{}` | Extra labels to add to the test runner pod. |
 | pod.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | nodeSelector to apply to the test runner pod. |
 | pod.rbac | object | `{"create":true}` | RBAC settings for the service account. |

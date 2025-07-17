@@ -59,6 +59,9 @@
                 "extraAnnotations": {
                     "type": "object"
                 },
+                "extraEnv": {
+                    "type": "object"
+                },
                 "extraLabels": {
                     "type": "object"
                 },
@@ -70,9 +73,20 @@
                         }
                     }
                 },
+                "rbac": {
+                    "type": "object",
+                    "properties": {
+                        "create": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "serviceAccount": {
                     "type": "object",
                     "properties": {
+                        "create": {
+                            "type": "boolean"
+                        },
                         "name": {
                             "type": "string"
                         }

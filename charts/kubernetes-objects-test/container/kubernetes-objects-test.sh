@@ -79,7 +79,7 @@ function countExpectation() {
 
 count=$(jq -r ".checks | length-1" "${CHECKS_FILE}")
 for i in $(seq 0 "${count}"); do
-  kind=$(jq -r --argjson i "${i}" '.checks[$i].kind' "${CHECKS_FILE}" | envsubst)
+  kind=$(jq -r --argjson i "${i}" '.checks[$i].kind | ascii_downcase' "${CHECKS_FILE}" | envsubst)
   name=$(jq -r --argjson i "${i}" '.checks[$i].name // ""' "${CHECKS_FILE}" | envsubst)
   namespace=$(jq -r --argjson i "${i}" '.checks[$i].namespace // ""' "${CHECKS_FILE}" | envsubst)
 

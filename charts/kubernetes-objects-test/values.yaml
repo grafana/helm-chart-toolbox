@@ -24,24 +24,28 @@ attempts: 10
 delay: 30
 
 pod:
-  # -- nodeSelector to apply to the test runner pods.
+  # -- nodeSelector to apply to the test runner pod.
   # @section -- Job settings
   nodeSelector:
     kubernetes.io/os: linux
 
-  # -- Extra annotations to add to the test runner pods.
+  # -- Extra annotations to add to the test runner pod.
   # @section -- Job settings
   extraAnnotations: {}
 
-  # -- Extra labels to add to the test runner pods.
+  # -- Extra labels to add to the test runner pod.
   # @section -- Job settings
   extraLabels: {}
+  
+  # -- Extra environment variables to add to the test runner pod.
+  # @section -- Job settings
+  extraEnv: {}
 
-  # -- Tolerations to apply to the test runner pods.
+  # -- Tolerations to apply to the test runner pod.
   # @section -- Job settings
   tolerations: []
 
-  # -- Service Account to use for the test runner pods.
+  # -- Service Account to use for the test runner pod.
   # @section -- Job settings
   serviceAccount:
     create: true

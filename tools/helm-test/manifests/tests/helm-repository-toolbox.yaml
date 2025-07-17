@@ -8,4 +8,4 @@ spec:
   interval: 1m
   url: https://github.com/grafana/helm-chart-toolbox
   ref:
-    branch: feat/kubernetes-objects-test
+    branch: main

@@ -3,51 +3,31 @@
 (      To make changes, please modify README.md.gotmpl and run `helm-docs`)
 -->
 
-# query-test
+# kubernetes-objects-test
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
-A Helm Chart Toolbox test for running queries against various observability databases.
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+A Helm Chart Toolbox test for asserting that kubernetes objects are created as expected.
 
 ## How it works
 
-This chart provides a means for encoding queries. These queries are used to ensure that telemetry data is truly present
-on the desired destinations.
+This chart provides a means for encoding checks for Kubernetes Objects. This can be used to verify that certain objects
+exist in a Kubernetes cluster.
 
 ## Usage
 
 To use this chart, specify a test:
 
 ```yaml
-tests:
-  - env:
-      PROMETHEUS_URL: https://prometheus-server.prometheus.svc:9090/api/v1/query
-      PROMETHEUS_USER: promuser
-      PROMETHEUS_PASS: prometheuspassword
-    queries:
-      - query: kubernetes_build_info{cluster="cluster-monitoring-feature-test", job="integrations/kubernetes/kubelet"}
-        type: promql
+checks:
+  - kind: node
+    expect:
+      count: 2
+  - kind: deployment
+    name: grafana
+    namespace: grafana
 ```
 
-Each query runs sequentially, and the test fails if any of the queries return an error or does not have the expected output.
-
-To specify different destinations of the same type, you can use multiple tests:
-
-```yaml
-  - env:
-      PROMETHEUS_URL: https://prometheus-one:9090/api/v1/query
-      PROMETHEUS_USER: promuser-one
-      PROMETHEUS_PASS: prometheuspassword-one
-    queries:
-      - query: kubernetes_build_info{color="blue"}
-        type: promql
-  - env:
-      PROMETHEUS_URL: https://prometheus-two:9090/api/v1/query
-      PROMETHEUS_USER: promuser-two
-      PROMETHEUS_PASS: prometheuspassword-two
-    queries:
-      - query: kubernetes_build_info{color="green"}
-        type: promql
-```
+Each check runs sequentially, and the test fails if any of the checks return an error or fails an expectation.
 
 <!-- textlint-disable terminology -->
 ## Maintainers
@@ -60,7 +40,7 @@ To specify different destinations of the same type, you can use multiple tests:
 <!-- markdownlint-disable list-marker-space -->
 ## Source Code
 
-* <https://github.com/grafana/helm-chart-toolbox/tree/main/charts/query-test>
+* <https://github.com/grafana/helm-chart-toolbox/tree/main/charts/kubernetes-objects-test>
 <!-- markdownlint-enable list-marker-space -->
 <!-- markdownlint-enable no-bare-urls -->
 
@@ -71,9 +51,9 @@ To specify different destinations of the same type, you can use multiple tests:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | attempts | int | `10` | Number of times to retry the test on failure. |
+| checks | list | `[]` | The checks to run. |
 | delay | int | `30` | Delay, in seconds, between test runs. |
 | initialDelay | int | `0` | Initial delay, in seconds, before starting the first test run. |
-| tests | list | `[]` | The tests to run. Each should contain an "env" object and a "queries" list. |
 
 ### General settings
 
@@ -95,7 +75,7 @@ To specify different destinations of the same type, you can use multiple tests:
 |-----|------|---------|-------------|
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
 | image.registry | string | `"ghcr.io"` | Test pod image registry. |
-| image.repository | string | `"grafana/helm-chart-toolbox-query-test"` | Test pod image repository. |
+| image.repository | string | `"grafana/helm-chart-toolbox-kubernetes-objects-test"` | Test pod image repository. |
 | image.tag | string | `""` | Test pod image tag. Default is the chart version. |
 
 ### Job settings

@@ -112,6 +112,21 @@ deployTestQueryTest() {
   fi
 }
 
+deployTestKubernetesObjectsTest() {
+  echo "#### Deploying Test: Kubernetes Objects Test"
+  kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
+  testDependencies='{"spec": {"dependsOn": []}}'
+  helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
+  if [ "${helmReleaseCount}" -gt 0 ]; then
+    testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/manifests/tests/helmrelease-kubernetes-objects-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+  else
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/manifests/tests/helmrelease-kubernetes-objects-test.yaml" <(echo "${values}"))
+  fi
+}
+
 echo; echo "### Deploying dependencies"
 deployFluxCD
 kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
@@ -177,6 +192,7 @@ if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
     if [ "${testType}" == "query-test" ]; then deployTestQueryTest "${i}";
+    elif [ "${testType}" == "kubernetes-objects-test" ]; then deployTestKubernetesObjectsTest "${i}";
     else
       echo "Unknown test type: ${testType}."
       exit 1

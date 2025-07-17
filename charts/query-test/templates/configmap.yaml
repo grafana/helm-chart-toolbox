@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "k8s-monitoring-test.fullname" $ }}-{{ $i }}
+  name: {{ include "helm-chart-toolbox.query-test.fullname" $ }}-{{ $i }}
   namespace: {{ $.Release.Namespace }}
 data:
   queries.json: |-

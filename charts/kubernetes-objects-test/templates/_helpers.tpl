@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "helm-chart-toolbox.query-test.name" -}}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "helm-chart-toolbox.query-test.fullname" -}}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "helm-chart-toolbox.query-test.chart" -}}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "helm-chart-toolbox.query-test.labels" -}}
-helm.sh/chart: {{ include "helm-chart-toolbox.query-test.chart" . }}
-{{ include "helm-chart-toolbox.query-test.selectorLabels" . }}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.labels" -}}
+helm.sh/chart: {{ include "helm-chart-toolbox.kubernetes-objects-test.chart" . }}
+{{ include "helm-chart-toolbox.kubernetes-objects-test.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "helm-chart-toolbox.query-test.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "helm-chart-toolbox.query-test.name" . }}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "helm-chart-toolbox.kubernetes-objects-test.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "helm-chart-toolbox.query-test.serviceAccountName" -}}
+{{- define "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "helm-chart-toolbox.query-test.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "helm-chart-toolbox.kubernetes-objects-test.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

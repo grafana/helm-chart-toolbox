@@ -1,9 +1,8 @@
-{{- range $i, $test := $.Values.tests }}
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ include "helm-chart-toolbox.query-test.fullname" $ }}-{{ $i }}
+  name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}
   namespace: {{ $.Release.Namespace }}
   labels:
     app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
@@ -48,7 +47,7 @@ spec:
       command: ["bash", "-c", "sleep {{ $.Values.initialDelay | int }}"]
   {{- end }}
   containers:
-    - name: query-test
+    - name: kubernetes-objects-test
       image: "{{ $.Values.global.image.registry | default $.Values.image.registry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.Version }}"
       command:
         - bash
@@ -56,25 +55,19 @@ spec:
         - |
           for i in $(seq 1 {{ $.Values.attempts | int }}); do
             echo "Running test... ($i/{{ $.Values.attempts | int }})"
-            if /usr/bin/query-test.sh /etc/test/queries.json; then
+            if /usr/bin/kubernetes-objects-test.sh /etc/test/checks.json; then
               exit 0
             fi
             sleep {{ $.Values.delay | int }}
           done
           exit 1
-      envFrom:
-{{- if hasKey $test "env" }}
-        - secretRef:
-            name: {{ include "helm-chart-toolbox.query-test.fullname" $ }}-{{ $i }}
-{{- end }}
-{{- if hasKey $test "envFrom" }}
-{{ (index $test "envFrom") | toYaml | indent 8 }}
-{{- end }}
+      env:
+        - name: KUBERNETES_VERSION
+          value: {{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}
       volumeMounts:
         - name: queries
           mountPath: /etc/test
   volumes:
     - name: queries
       configMap:
-        name: {{ include "helm-chart-toolbox.query-test.fullname" $ }}-{{ $i }}
-{{- end }}
+        name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}

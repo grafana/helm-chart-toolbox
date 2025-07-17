@@ -1,0 +1,42 @@
+<!--
+(NOTE: Do not edit README.md directly. It is a generated file!)
+(      To make changes, please modify README.md.gotmpl and run `helm-docs`)
+-->
+
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+{{ template "chart.badgesSection" . }}
+{{ template "chart.description" . }}
+{{ template "chart.homepageLine" . }}
+
+## How it works
+
+This chart provides a means for encoding checks for Kubernetes Objects. This can be used to verify that certain objects
+exist in a Kubernetes cluster.
+
+## Usage
+
+To use this chart, specify a test:
+
+```yaml
+checks:
+  - kind: node
+    expect:
+      count: 2
+  - kind: deployment
+    name: grafana
+    namespace: grafana
+```
+
+Each check runs sequentially, and the test fails if any of the checks return an error or fails an expectation.
+
+<!-- textlint-disable terminology -->
+{{ template "chart.maintainersSection" . }}
+<!-- textlint-enable terminology -->
+<!-- markdownlint-disable no-bare-urls -->
+<!-- markdownlint-disable list-marker-space -->
+{{ template "chart.sourcesSection" . }}
+<!-- markdownlint-enable list-marker-space -->
+<!-- markdownlint-enable no-bare-urls -->
+{{ template "chart.requirementsSection" . }}
+{{ template "chart.valuesSection" . }}

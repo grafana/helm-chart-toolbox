@@ -11,3 +11,5 @@ subject:
 
 cluster:
   type: kind
+
+tests:

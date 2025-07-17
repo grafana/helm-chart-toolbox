@@ -5,7 +5,7 @@ description: A Helm Chart Toolbox test for running queries against various obser
 type: application
 icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
 sources:
-  - https://github.com/grafana/k8s-monitoring-helm/tree/main/charts/k8s-monitoring-test
+  - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/query-test
 version: 0.2.0
 appVersion: 0.2.0
 maintainers:

@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+name: kubernetes-objects-test
+description: A Helm Chart Toolbox test for asserting that kubernetes objects are created as expected.
+type: application
+icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
+sources:
+  - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/kubernetes-objects-test
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+  - email: pete.wall@grafana.com
+    name: petewall
+dependencies: []

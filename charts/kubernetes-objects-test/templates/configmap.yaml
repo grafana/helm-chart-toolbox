@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm-chart-toolbox.kubernetes-objects-test.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+data:
+  checks.json: |-
+    {
+      "checks": {{ .Values.checks | toPrettyJson | nindent 6 }}
+    }

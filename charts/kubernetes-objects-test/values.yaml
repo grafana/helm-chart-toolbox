@@ -36,7 +36,7 @@ pod:
   # -- Extra labels to add to the test runner pod.
   # @section -- Job settings
   extraLabels: {}
-  
+
   # -- Extra environment variables to add to the test runner pod.
   # @section -- Job settings
   extraEnv: []

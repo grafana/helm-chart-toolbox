@@ -1,11 +1,13 @@
 ---
 apiVersion: helm-chart-toolbox.grafana.com/v1
 kind: TestPlan
-name: basic
+name: two-tests
 subject:
   path: ../../..
   values:
     tests:
+      - env: {}
+        queries: []
       - env: {}
         queries: []
 
@@ -17,8 +19,15 @@ tests:
     values:
       checks:
         - kind: ConfigMap
-          name: basic-query-test-0
+          name: two-tests-query-test-0
+          namespace: default
+        - kind: ConfigMap
+          name: two-tests-query-test-1
+          namespace: default
+
+        - kind: Secret
+          name: two-tests-query-test-0
           namespace: default
         - kind: Secret
-          name: basic-query-test-0
+          name: two-tests-query-test-1
           namespace: default

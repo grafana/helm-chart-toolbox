@@ -1,0 +1,11 @@
+pod:
+  extraEnv:
+    - name: VERBOSE
+      value: "true"
+checks:
+  - kind: ConfigMap
+    name: basic-query-test-0
+    namespace: toolbox
+  - kind: Secret
+    name: basic-query-test-0
+    namespace: toolbox

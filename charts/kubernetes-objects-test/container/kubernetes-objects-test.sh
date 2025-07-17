@@ -40,7 +40,12 @@ fi
 
 KUBECTL=$(which kubectl)
 if [ -n "${KUBERNETES_VERSION}" ]; then
-  KUBECTL="kubectl-${KUBERNETES_VERSION}"
+  VERSIONED_KUBECTL=$(which "kubectl-${KUBERNETES_VERSION}")
+  if [ -n "${VERSIONED_KUBECTL}" ]; then
+    KUBECTL="${VERSIONED_KUBECTL}"
+  else
+    echo "kubectl for version ${KUBERNETES_VERSION} not found. Defaulting to latest kubectl."
+  fi
 fi
 
 function existsExpectation() {

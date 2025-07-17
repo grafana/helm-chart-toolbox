@@ -13,3 +13,12 @@ cluster:
   type: kind
 
 tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: ConfigMap
+          name: basic-query-test-0
+          namespace: toolbox
+        - kind: Secret
+          name: basic-query-test-0
+          namespace: toolbox

@@ -63,7 +63,7 @@ spec:
           exit 1
       env:
         - name: KUBERNETES_VERSION
-          value: {{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}
+          value: "{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}"
       volumeMounts:
         - name: queries
           mountPath: /etc/test

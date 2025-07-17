@@ -2,13 +2,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: query-test
+  name: kubernetes-objects-test
   namespace: toolbox
 spec:
   interval: 1m
   chart:
     spec:
-      chart: charts/kubernetes-toolbox-test
+      chart: charts/kubernetes-objects-test
       sourceRef:
         kind: GitRepository
         name: helm-chart-toolbox

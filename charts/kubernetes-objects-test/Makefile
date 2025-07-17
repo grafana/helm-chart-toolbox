@@ -15,7 +15,7 @@ values.schema.json: values.yaml $$(wildcard schema-mods/*)
 	docker run --rm --platform linux/amd64 --volume $(shell pwd):/chart ghcr.io/grafana/helm-chart-toolbox-schema-generator --chart /chart > $@
 
 build-image: .temp/image-built-$(VERSION)
-.temp/image-built-$(VERSION): container/Dockerfile container/query-test.sh
+.temp/image-built-$(VERSION): container/Dockerfile container/kubernetes-objects-test.sh
 	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(VERSION) container
 	mkdir -p .temp && touch .temp/image-built-${VERSION}
 

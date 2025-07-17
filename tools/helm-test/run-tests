@@ -42,6 +42,8 @@ if [ "${testCount}" -ge 0 ]; then
     echo "#### Running test: ${testType}"
     if [ "${testType}" == "query-test" ]; then
       helm test query-test --namespace toolbox --hide-notes --logs
+    elif [ "${testType}" == "kubernetes-objects-test" ]; then
+      helm test kubernetes-objects-test --namespace toolbox --hide-notes --logs
     fi
   done
 fi

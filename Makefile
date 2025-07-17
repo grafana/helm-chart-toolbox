@@ -1,6 +1,7 @@
 .PHONY: build
 build: tools/helm-test/TestPlan.md
 	make -C charts/query-test build
+	make -C charts/kubernetes-objects-test build
 
 tools/helm-test/TestPlan.md: tools/helm-test/manifests/templates/test-plan.yaml
 	docker run --rm --volume $(shell pwd):/src --workdir /src ghcr.io/grafana/helm-chart-toolbox-doc-generator --file $< > $@

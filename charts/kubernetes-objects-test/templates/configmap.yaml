@@ -7,5 +7,5 @@ metadata:
 data:
   checks.json: |-
     {
-      "checks": {{ .Values.checks | toPrettyJson | nindent 6 }}
+      "checks": {{ .Values.checks | toPrettyJson }}
     }

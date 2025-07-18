@@ -103,11 +103,11 @@ function metrics_query {
 
   echo "Running PromQL query: ${PROMETHEUS_URL}?query=${query}..."
   if [ -z "${PROMETHEUS_TENANTID}" ]; then
-    additionalRequestOptions=""
+    additionalRequestOptions=()
   else
-    additionalRequestOptions="-H X-Scope-OrgID:${PROMETHEUS_TENANTID}"
+    additionalRequestOptions=("-H" "X-Scope-OrgID: ${PROMETHEUS_TENANTID}")
   fi
-  result=$(curl -skX POST $additionalRequestOptions -u "${PROMETHEUS_USER}:${PROMETHEUS_PASS}" "${PROMETHEUS_URL}" --data-urlencode "query=${query}")
+  result=$(curl -skX POST "${additionalRequestOptions[@]}" -u "${PROMETHEUS_USER}:${PROMETHEUS_PASS}" "${PROMETHEUS_URL}" --data-urlencode "query=${query}")
   status=$(echo "${result}" | jq -r .status)
   if [ "${status}" != "success" ]; then
     echo "Query failed!"

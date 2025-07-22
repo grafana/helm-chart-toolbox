@@ -43,10 +43,10 @@ chart=$(yq eval '.subject.chart // ""' "${testPlan}")
 repository=$(yq eval '.subject.repository // ""' "${testPlan}")
 chartPath=$(yq eval '.subject.path // ""' "${testPlan}")
 
+chartArg=()
 if [ -n "${chart}" ] && [ -n "${repository}" ]; then
-  helmCommand+=(--repo "${repository}" "${chart}")
-  helmUpgradeCommand+=(--repo "${repository}" "${chart}")
   chartName=$(helm show chart --repo "${repository}" "${chart}" | yq .name)
+  chartArg=(--repo "${repository}" "${chart}")
 fi
 
 if [ -n "${chartPath}" ]; then
@@ -54,30 +54,30 @@ if [ -n "${chartPath}" ]; then
     chartPath=$(realpath "${testDir}/${chartPath}")
   fi
   chartName=$(helm show chart "${chartPath}" | yq .name)
-  helmCommand+=("${chartPath}")
-  helmUpgradeCommand+=("${chartPath}")
+  chartArg=("${chartPath}")
 fi
 
+versionArg=()
 chartVersion=$(yq eval '.subject.version // ""' "${testPlan}")
 if [ -n "${chartVersion}" ]; then
-  helmCommand+=(--version "${chartVersion}")
-  helmUpgradeCommand+=(--version "${chartVersion}")
+  versionArg=(--version "${chartVersion}")
 fi
 
 # Check for a namespace
+namespaceArg=()
 releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
 if [ -n "${releaseNamespace}" ]; then
-  helmCommand+=(--namespace "${releaseNamespace}" --create-namespace)
-  helmUpgradeCommand+=(--namespace "${releaseNamespace}" --create-namespace)
+  namespaceArg=(--namespace "${releaseNamespace}" --create-namespace)
 fi
 
 # Check for values that are defined directly in the test plan
+valuesArg=()
 chartValues=$(yq eval '.subject.values // ""' "${testPlan}")
 if [ -n "${chartValues}" ]; then
   valuesFile=$(mktemp /tmp/values.yaml.XXXXXX)
   trap 'rm -f "${valuesFile}"' EXIT  # Ensure the temporary file is removed on exit
   echo "${chartValues}" > "${valuesFile}"
-  helmCommand+=(-f "${valuesFile}")
+  valuesArg=(-f "${valuesFile}")
 fi
 
 # Check for a values file
@@ -85,7 +85,7 @@ chartValuesFile=$(yq eval '.subject.valuesFile // ""' "${testPlan}")
 if [ -n "${chartValuesFile}" ]; then
   chartValuesFile=$(realpath "${testDir}/${chartValuesFile}")
   if [ -f "${chartValuesFile}" ]; then
-    helmCommand+=(-f "${chartValuesFile}")
+    valuesArg=(-f "${chartValuesFile}")
   else
     echo "Upgrade values file not found: ${chartValuesFile}."
     exit 1
@@ -94,6 +94,7 @@ fi
 
 # Run the helm command
 echo; echo "### Deploying Helm chart: ${chartName}"
+helmCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}")
 echo "${helmCommand[@]}"
 "${helmCommand[@]}"
 
@@ -116,30 +117,42 @@ fi
 
 upgradeValues=$(yq eval '.subject.upgrade.values // ""' "${testPlan}")
 upgradeValuesFile=$(yq eval '.subject.upgrade.valuesFile // ""' "${testPlan}")
-if [ -n "${upgradeValues}" ] || [ -n "${upgradeValuesFile}" ]; then
-  # TODO: handle chartVersion
-
+upgradeVersion=$(yq eval '.subject.upgrade.version // ""' "${testPlan}")
+upgradePath=$(yq eval '.subject.upgrade.path // ""' "${testPlan}")
+if [ -n "${upgradeValues}" ] || [ -n "${upgradeValuesFile}" ] || [ -n "${upgradeVersion}" ] || [ -n "${upgradePath}" ]; then
   # Check for values that are defined directly in the test plan
   if [ -n "${upgradeValues}" ]; then
     valuesFile=$(mktemp /tmp/values.yaml.XXXXXX)
     trap 'rm -f "${valuesFile}"' EXIT  # Ensure the temporary file is removed on exit
     echo "${upgradeValues}" > "${valuesFile}"
-    helmUpgradeCommand+=(-f "${valuesFile}")
+    valuesArg=(-f "${valuesFile}")
   fi
 
   # Check for a values file
   if [ -n "${upgradeValuesFile}" ]; then
     upgradeValuesFile=$(realpath "${testDir}/${upgradeValuesFile}")
     if [ -f "${upgradeValuesFile}" ]; then
-      helmUpgradeCommand+=(-f "${upgradeValuesFile}")
+      valuesArg=(-f "${upgradeValuesFile}")
     else
       echo "Upgrade values file not found: ${upgradeValuesFile}."
       exit 1
     fi
   fi
 
+  if [ -n "${upgradeVersion}" ]; then
+    versionArg=(--version "${upgradeVersion}")
+  fi
+
+  if [ -n "${upgradePath}" ]; then
+    if ! grep "^oci://" <<< "${upgradePath}" > /dev/null; then
+      upgradePath=$(realpath "${testDir}/${upgradePath}")
+    fi
+    chartArg=("${upgradePath}")
+  fi
+
   # Run the helm upgrade command
   echo; echo "### Upgrading Helm chart: ${chartName}"
+  helmUpgradeCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}")
   echo "${helmUpgradeCommand[@]}"
   "${helmUpgradeCommand[@]}"
 fi

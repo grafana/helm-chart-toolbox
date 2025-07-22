@@ -1,0 +1,26 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: upgrade-by-values
+subject:
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy
+  values:
+    ingress:
+      enabled: false
+
+  upgrade:
+    values:
+      ingress:
+        enabled: true
+
+cluster:
+  type: kind
+
+tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: Ingress
+          name: upgrade-by-values-alloy
+          namespace: default

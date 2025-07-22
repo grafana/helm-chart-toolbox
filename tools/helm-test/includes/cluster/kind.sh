@@ -29,10 +29,17 @@ deleteKindCluster() {
   clusterName=$(getClusterName "${testPlan}")
   deleteClusterCommand=(kind delete cluster --name "${clusterName}")
 
-  if ! "${deleteClusterCommand[@]}"; then
-    # Sometimes it just needs a minute and it'll work the second time.
+  totalAttempts=30
+  for attempt in $(seq 1 "${totalAttempts}"); do
+    if "${deleteClusterCommand[@]}"; then
+      break
+    elif [ "${attempt}" -eq "${totalAttempts}" ]; then
+      echo "Failed to delete cluster ${clusterName} after 30 attempts."
+      exit 1
+    fi
+    # Sometimes it can take a few attempts.
     # This has to do with something related to Beyla being installed and its eBPF hooks into the node.
-    sleep 60
-    "${deleteClusterCommand[@]}"
-  fi
+    echo "Attempt ${attempt} to delete cluster ${clusterName} failed. Retrying..."
+    sleep 10
+  done
 }

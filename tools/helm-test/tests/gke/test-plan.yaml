@@ -3,7 +3,8 @@ apiVersion: helm-chart-toolbox.grafana.com/v1
 kind: TestPlan
 name: gke
 subject:
-  path: oci://registry-1.docker.io/bitnamicharts/nginx
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy
 
 cluster:
   clusterName: helm-test

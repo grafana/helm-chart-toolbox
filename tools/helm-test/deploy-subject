@@ -95,6 +95,10 @@ fi
 # Run the helm command
 echo; echo "### Deploying Helm chart: ${chartName}"
 helmCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}")
+extraArgs=$(yq eval -r '.subject.extraArgs[] // ""' "${testPlan}")
+for arg in ${extraArgs}; do
+  helmCommand+=("${arg}")
+done
 echo "${helmCommand[@]}"
 "${helmCommand[@]}"
 
@@ -153,6 +157,10 @@ if [ -n "${upgradeValues}" ] || [ -n "${upgradeValuesFile}" ] || [ -n "${upgrade
   # Run the helm upgrade command
   echo; echo "### Upgrading Helm chart: ${chartName}"
   helmUpgradeCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}")
+  extraArgs=$(yq eval -r '.subject.upgrade.extraArgs[] // ""' "${testPlan}")
+  for arg in ${extraArgs}; do
+    helmUpgradeCommand+=("${arg}")
+  done
   echo "${helmUpgradeCommand[@]}"
   "${helmUpgradeCommand[@]}"
 fi

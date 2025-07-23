@@ -1,3 +1,4 @@
+---
 tests:
   - env:
       CLUSTER: pod-logs-feature-test

@@ -91,43 +91,38 @@
         "query": {
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": [
-                        "string",
-                        "null"
-                    ],
-                    "enum": [
-                        "promql",
-                        "logql",
-                        "traceql",
-                        "pyroql"
-                    ]
-                },
                 "expect": {
                     "type": "object",
                     "properties": {
                         "operator": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
+                            "type": "string",
                             "enum": [
                                 "<",
                                 "<=",
                                 "=",
                                 "==",
                                 "!=",
-                                "=>",
+                                ">=",
                                 ">"
                             ]
                         },
                         "value": {
-                            "type": "number"
+                            "type": "null"
                         }
                     }
+                },
+                "query": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "promql",
+                        "logql",
+                        "traceql",
+                        "pyroql",
+                        null
+                    ]
                 }
             }
         },
@@ -137,37 +132,22 @@
                 "env": {
                     "type": "object",
                     "properties": {
-                        "PROMETHEUS_URL": {
-                            "type": "string"
-                        },
-                        "PROMETHEUS_USER": {
-                            "type": "string"
-                        },
-                        "PROMETHEUS_PASS": {
-                            "type": "string"
-                        },
-                        "LOKI_URL": {
+                        "LOKI_PASS": {
                             "type": "string"
                         },
                         "LOKI_TENANTID": {
                             "type": [
-                                "string",
-                                "number"
+                                "number",
+                                "string"
                             ]
+                        },
+                        "LOKI_URL": {
+                            "type": "string"
                         },
                         "LOKI_USER": {
                             "type": "string"
                         },
-                        "LOKI_PASS": {
-                            "type": "string"
-                        },
-                        "TEMPO_URL": {
-                            "type": "string"
-                        },
-                        "TEMPO_USER": {
-                            "type": "string"
-                        },
-                        "TEMPO_PASS": {
+                        "PROFILECLI_PASS": {
                             "type": "string"
                         },
                         "PROFILECLI_URL": {
@@ -176,26 +156,28 @@
                         "PROFILECLI_USER": {
                             "type": "string"
                         },
-                        "PROFILECLI_PASS": {
+                        "PROMETHEUS_PASS": {
+                            "type": "string"
+                        },
+                        "PROMETHEUS_URL": {
+                            "type": "string"
+                        },
+                        "PROMETHEUS_USER": {
+                            "type": "string"
+                        },
+                        "TEMPO_PASS": {
+                            "type": "string"
+                        },
+                        "TEMPO_URL": {
+                            "type": "string"
+                        },
+                        "TEMPO_USER": {
                             "type": "string"
                         }
                     }
                 },
                 "envFrom": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "secretKeyRef": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    "type": "array"
                 },
                 "queries": {
                     "type": "array",

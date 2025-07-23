@@ -1,0 +1,53 @@
+---
+# Environment variables
+env:
+  # -- The Prometheus url to query. e.g. http://prometheus.prometheus.svc:9090/api/v1/query
+  # @section -- Environment Variables
+  PROMETHEUS_URL: ""
+  # -- The Prometheus username to use for authentication.
+  # @section -- Environment Variables
+  PROMETHEUS_USER: ""
+  # -- The Prometheus password to use for authentication.
+  # @section -- Environment Variables
+  PROMETHEUS_PASS: ""
+
+  # -- The Loki url to query. e.g. http://loki.loki.svc:3100/loki/api/v1/query
+  # @section -- Environment Variables
+  LOKI_URL: ""
+  # -- The Loki tenant ID to use for multi-tenancy.
+  # @section -- Environment Variables
+  LOKI_TENANTID: ""
+  # -- The Loki username to use for authentication.
+  # @section -- Environment Variables
+  LOKI_USER: ""
+  # -- The Loki password to use for authentication.
+  # @section -- Environment Variables
+  LOKI_PASS: ""
+
+  # -- The Tempo url to query. e.g. http://tempo.tempo.svc:3200/api/search
+  # @section -- Environment Variables
+  TEMPO_URL: ""
+  # -- The Tempo username to use for authentication.
+  # @section -- Environment Variables
+  TEMPO_USER: ""
+  # -- The Tempo password to use for authentication.
+  # @section -- Environment Variables
+  TEMPO_PASS: ""
+
+  # -- The Pyroscope url to query. e.g. http://pyroscope.pyroscope.svc:4040
+  # @section -- Environment Variables
+  PROFILECLI_URL: ""
+  # -- The Pyroscope username to use for authentication.
+  # @section -- Environment Variables
+  PROFILECLI_USER: ""
+  # -- The Pyroscope password to use for authentication.
+  # @section -- Environment Variables
+  PROFILECLI_PASS: ""
+
+# -- Add additional environment variables from configmaps or secrets.
+# @section -- Environment Variables
+envFrom: []
+
+# -- List of queries to run against the configured data sources.
+# @section -- Queries
+queries: []

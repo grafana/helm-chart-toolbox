@@ -1,0 +1,80 @@
+---
+# Source: query-test/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: query-test-0
+  namespace: default
+stringData:
+  CLUSTER: "pod-logs-feature-test"
+  LOKI_PASS: "lokipassword"
+  LOKI_TENANTID: "1"
+  LOKI_URL: "http://loki.loki.svc:3100/loki/api/v1/query"
+  LOKI_USER: "loki"
+---
+# Source: query-test/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: query-test-0
+  namespace: default
+data:
+  queries.json: |-
+    {
+      "queries": 
+      [
+        {
+          "query": "count_over_time({cluster=\"$CLUSTER\", job=\"production/busybox\", namespace=\"production\"}[1h])",
+          "type": "logql"
+        },
+        {
+          "query": "count_over_time({cluster=\"$CLUSTER\", job=\"dev-pod\", namespace=\"development\"}[1h])",
+          "type": "logql"
+        }
+      ]
+    }
+---
+# Source: query-test/templates/tests/test-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: query-test-0
+  namespace: default
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/instance: "query-test"
+    app.kubernetes.io/version: 0.2.0
+    helm.sh/chart: "query-test-0.2.0"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
+spec:
+  restartPolicy: Never
+  nodeSelector:
+        kubernetes.io/os: linux
+  containers:
+    - name: query-test
+      image: "ghcr.io/grafana/helm-chart-toolbox-query-test:0.2.0"
+      command:
+        - bash
+        - -c
+        - |
+          for i in $(seq 1 10); do
+            echo "Running test... ($i/10)"
+            if /usr/bin/query-test.sh /etc/test/queries.json; then
+              exit 0
+            fi
+            sleep 30
+          done
+          exit 1
+      envFrom:
+        - secretRef:
+            name: query-test-0
+      volumeMounts:
+        - name: queries
+          mountPath: /etc/test
+  volumes:
+    - name: queries
+      configMap:
+        name: query-test-0

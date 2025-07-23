@@ -1,5 +1,6 @@
 .lintconf.yaml
 container
+definitions
 docs
 schema-mods
 Makefile

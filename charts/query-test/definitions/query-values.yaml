@@ -1,0 +1,18 @@
+---
+# -- The query to run
+# @section -- Queries
+query: ""
+
+# -- The type of query to run: `promql`, `logql`, `traceql`, or `pyroql`.
+# @section -- Queries
+type: ""
+
+# An optional expectation to validate the query result.
+expect:
+  # -- (number) The expected value of the query result.
+  # @section -- Expectation
+  value: null
+
+  # -- The operator to use for comparison: `<`, `<=`, `=`, `==`, `>=`, `>`, or `!=`.
+  # @section -- Expectation
+  operator: ""

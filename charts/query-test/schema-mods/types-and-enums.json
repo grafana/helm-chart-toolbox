@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "tests": {
+      "items": {"$ref": "#/definitions/test"}
+    }
+  },
+  "definitions": {
+    "query": {
+      "properties": {
+        "type": {"enum": ["promql", "logql", "traceql", "pyroql", null]},
+        "expect": {
+          "properties": {
+            "operator": {"enum": ["<", "<=", "=", "==", "!=", ">=", ">"]}
+          }
+        }
+      }
+    },
+    "test": {
+      "properties": {
+        "env": {
+          "properties": {
+            "LOKI_TENANTID": {"type": ["number","string"]}
+          }
+        },
+        "queries": {
+          "items": {"$ref": "#/definitions/query"}
+        }
+      }
+    }
+  }
+}

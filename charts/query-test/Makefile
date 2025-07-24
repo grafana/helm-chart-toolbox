@@ -11,9 +11,26 @@ Chart.lock: Chart.yaml
 	helm dependency update .
 	@touch Chart.lock # Ensure the timestamp is updated
 
-values.schema.json: values.yaml $$(wildcard schema-mods/*)
+# Examples
+EXAMPLE_VALUES_FILES := $(shell find docs/examples -name values.yaml)
+EXAMPLE_OUTPUT_FILES := $(EXAMPLE_VALUES_FILES:values.yaml=output.yaml)
+%/output.yaml: %/values.yaml Chart.yaml Chart.lock values.yaml values.schema.json
+	helm template query-test . -f $< > $@
+
+.PHONY: examples
+examples: $(EXAMPLE_OUTPUT_FILES)
+
+# Schemas
+values.schema.json: values.yaml schema-mods/definitions/query.schema.json schema-mods/definitions/test.schema.json $$(wildcard schema-mods/*)
 	docker run --rm --platform linux/amd64 --volume $(shell pwd):/chart ghcr.io/grafana/helm-chart-toolbox-schema-generator --chart /chart > $@
 
+schema-mods/definitions/query.schema.json: definitions/query-values.yaml
+	docker run --rm --platform linux/amd64 --volume $(shell pwd)/definitions:/definitions ghcr.io/grafana/helm-chart-toolbox-schema-generator --file /$< > $@
+
+schema-mods/definitions/test.schema.json: definitions/test-values.yaml
+	docker run --rm --platform linux/amd64 --volume $(shell pwd)/definitions:/definitions ghcr.io/grafana/helm-chart-toolbox-schema-generator --file /$< > $@
+
+# Container image
 build-image: .temp/image-built-$(VERSION)
 .temp/image-built-$(VERSION): container/Dockerfile container/query-test.sh
 	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(VERSION) container

@@ -1,0 +1,35 @@
+<!--
+(NOTE: Do not edit README.md directly. It is a generated file!)
+(      To make changes, please modify README.md.gotmpl and run `helm-docs`)
+-->
+
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+{{ template "chart.badgesSection" . }}
+{{ template "chart.description" . }}
+{{ template "chart.homepageLine" . }}
+
+## How it works
+
+This chart provides the ability to delay for a specified amount of time before running tests.
+This can be useful for testing the readiness of services that may take some time to become available, or for allowing
+time for routine processes to complete a few cycles before running tests.
+
+## Usage
+
+To use this chart, specify a delay:
+
+```yaml
+delay: 30  # Delay for 30 seconds
+```
+
+<!-- textlint-disable terminology -->
+{{ template "chart.maintainersSection" . }}
+<!-- textlint-enable terminology -->
+<!-- markdownlint-disable no-bare-urls -->
+<!-- markdownlint-disable list-marker-space -->
+{{ template "chart.sourcesSection" . }}
+<!-- markdownlint-enable list-marker-space -->
+<!-- markdownlint-enable no-bare-urls -->
+{{ template "chart.requirementsSection" . }}
+{{ template "chart.valuesSection" . }}

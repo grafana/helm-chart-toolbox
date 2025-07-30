@@ -97,33 +97,51 @@ deployPresetPyroscope() {
   kubectl apply -f <(echo "${overrides}" | yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/manifests/presets/preset-pyroscope.yaml" -)
 }
 
-deployTestQueryTest() {
-  echo "#### Deploying Test: Query Test"
+deployTestDelay() {
+  echo "#### Deploying Test: Delay"
+  local manifestFile="${scriptDir}/manifests/tests/helmrelease-delay.yaml"
   kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
   testDependencies='{"spec": {"dependsOn": []}}'
   helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
   if [ "${helmReleaseCount}" -gt 0 ]; then
     testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
     values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/manifests/tests/helmrelease-query-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${manifestFile}" <(echo "${values}") <(echo "${testDependencies}"))
   else
     values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/manifests/tests/helmrelease-query-test.yaml" <(echo "${values}"))
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${manifestFile}" <(echo "${values}"))
+  fi
+}
+
+deployTestQueryTest() {
+  echo "#### Deploying Test: Query Test"
+  local manifestFile="${scriptDir}/manifests/tests/helmrelease-query-test.yaml"
+  kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
+  testDependencies='{"spec": {"dependsOn": []}}'
+  helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
+  if [ "${helmReleaseCount}" -gt 0 ]; then
+    testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${manifestFile}" <(echo "${values}") <(echo "${testDependencies}"))
+  else
+    values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${manifestFile}" <(echo "${values}"))
   fi
 }
 
 deployTestKubernetesObjectsTest() {
   echo "#### Deploying Test: Kubernetes Objects Test"
+  local manifestFile="${scriptDir}/manifests/tests/helmrelease-kubernetes-objects-test.yaml"
   kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
   testDependencies='{"spec": {"dependsOn": []}}'
   helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
   if [ "${helmReleaseCount}" -gt 0 ]; then
     testDependencies=$(flux get helmreleases --all-namespaces --no-header | grep -v toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
     values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${scriptDir}/manifests/tests/helmrelease-kubernetes-objects-test.yaml" <(echo "${values}") <(echo "${testDependencies}"))
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${manifestFile}" <(echo "${values}") <(echo "${testDependencies}"))
   else
     values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${scriptDir}/manifests/tests/helmrelease-kubernetes-objects-test.yaml" <(echo "${values}"))
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${manifestFile}" <(echo "${values}"))
   fi
 }
 

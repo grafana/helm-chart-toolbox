@@ -1,0 +1,18 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: delay
+  namespace: toolbox
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: charts/delay
+      sourceRef:
+        kind: GitRepository
+        name: helm-chart-toolbox
+        namespace: flux-system
+      interval: 1m
+  dependsOn: []
+  values: {}

@@ -1,0 +1,60 @@
+---
+# -- Name override
+# @section -- General settings
+nameOverride: ""
+
+# -- Full name override
+# @section -- General settings
+fullnameOverride: ""
+
+# -- The delay, in seconds.
+# @section -- Test settings
+delay: 60
+
+pod:
+  # -- nodeSelector to apply to the test runner pods.
+  # @section -- Job settings
+  nodeSelector:
+    kubernetes.io/os: linux
+
+  # -- Extra annotations to add to the test runner pods.
+  # @section -- Pod settings
+  extraAnnotations: {}
+
+  # -- Extra labels to add to the test runner pods.
+  # @section -- Pod settings
+  extraLabels: {}
+
+  # -- Tolerations to apply to the test runner pods.
+  # @section -- Pod settings
+  tolerations: []
+
+  # -- Service Account to use for the test runner pods.
+  # @section -- Pod settings
+  serviceAccount:
+    name: ""
+
+image:
+  # -- Test pod image registry.
+  # @section -- Image settings
+  registry: docker.io
+  # -- Test pod image repository.
+  # @section -- Image settings
+  repository: library/busybox
+  # -- Test pod image tag.
+  # @section -- Image settings
+  tag: latest
+  # -- Optional set of image pull secrets.
+  # @section -- Image settings
+  pullSecrets: []
+
+## Global properties for overriding the image registry and pull secrets.
+global:
+  image:
+    # -- Global image registry to use if it needs to be overridden for some specific use cases (e.g local registries, custom images, ...)
+    # @section -- Image Registry
+    registry: ""
+
+    # -- Optional set of global image pull secrets.
+    # @section -- Image Registry
+    pullSecrets: []

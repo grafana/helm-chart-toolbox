@@ -1,0 +1,25 @@
+creates a Pod to delay for two minutes:
+  1: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      annotations:
+        helm.sh/hook: test
+        helm.sh/hook-delete-policy: before-hook-creation
+        helm.sh/hook-weight: "0"
+      labels:
+        app.kubernetes.io/instance: RELEASE-NAME
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/version: 0.1.0
+        helm.sh/chart: delay-0.1.0
+      name: RELEASE-NAME-delay
+      namespace: NAMESPACE
+    spec:
+      containers:
+        - command:
+            - sleep 120
+          image: docker.io/library/busybox:latest
+          name: delay
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Never

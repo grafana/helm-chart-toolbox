@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "helm-chart-toolbox.delay.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
+    app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion }}
+    helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $key, $val := $.Values.pod.extraLabels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
+    {{- range $key, $val := $.Values.pod.extraAnnotations }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+spec:
+  {{- if $.Values.pod.serviceAccount.name }}
+  serviceAccountName: {{ $.Values.pod.serviceAccount.name }}
+  {{- end }}
+  {{- if or $.Values.global.image.pullSecrets $.Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- if $.Values.global.image.pullSecrets }}
+    {{- toYaml $.Values.global.image.pullSecrets | nindent 8 }}
+    {{- else }}
+    {{- toYaml $.Values.image.pullSecrets | nindent 8 }}
+    {{- end }}
+  {{- end }}
+  restartPolicy: Never
+  {{- with $.Values.pod.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- with $.Values.pod.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  containers:
+    - name: delay
+      image: "{{ $.Values.global.image.registry | default $.Values.image.registry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.Version }}"
+      command: [sleep {{.Values.delay}}]

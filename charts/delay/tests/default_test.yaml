@@ -1,0 +1,12 @@
+# yamllint disable rule:document-start rule:line-length rule:trailing-spaces
+suite: Delay - Default
+templates:
+  - tests/test-pod.yaml
+tests:
+  - it: creates a Pod to delay for two minutes
+    set:
+      delay: 120
+    asserts:
+      - isKind:
+          of: Pod
+      - matchSnapshot: {}

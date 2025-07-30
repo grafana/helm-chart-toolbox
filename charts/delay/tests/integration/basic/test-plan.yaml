@@ -1,0 +1,13 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: basic
+subject:
+  path: ../../..
+  values:
+    tests:
+      - env: {}
+        queries: []
+
+cluster:
+  type: kind

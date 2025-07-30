@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+name: delay
+description: A Helm Chart Toolbox "test" to simply delay. Useful for letting your system work for a certain amount of time before proceeding with the next test.
+type: application
+icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
+sources:
+  - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/delay
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+  - email: pete.wall@grafana.com
+    name: petewall
+dependencies: []

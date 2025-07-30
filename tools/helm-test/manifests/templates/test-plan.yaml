@@ -9,26 +9,28 @@ kind: TestPlan
 # @section -- General
 name: ""
 
-# Define the Helm chart test subject, how to configure it, how to deploy it, and optionallys how to upgrade it.
+# Define the Helm chart test subject, how to configure it, how to deploy it, and optionally how to upgrade it.
 subject:
-  # -- The path to the Helm chart to test.
+  # -- The release name to use when deploying the Helm chart. If not set, will use the test plan name.
+  # @section -- Subject
+  releaseName: ""
+
+  # -- The path to the Helm chart to test. Can be a local path or an `oci://` URL.
   # @section -- Subject
   path: ""
 
-  # -- NOT SUPPORTED YET! The Helm chart repository to use.
+  # -- The Helm chart repository to use.
   # @section -- Subject
   repository: ""
-  # -- NOT SUPPORTED YET! The name of the Helm chart to use from the chart repository.
+
+  # -- The name of the Helm chart to use from the chart repository.
   # @section -- Subject
-  name: ""
-  # -- NOT SUPPORTED YET! (optional) The version of the Helm chart to use from the chart repository.
+  chart: ""
+
+  # -- (optional) The version of the Helm chart to use from the chart repository.
   # If not set, will use the latest.
   # @section -- Subject
   version: ""
-
-  # -- The releas name to use when deploying the Helm chart. If not set, will use the test plan name.
-  # @section -- Subject
-  releaseName: ""
 
   # -- The namespace to use when deploying the Helm chart.
   # @section -- Subject
@@ -42,6 +44,10 @@ subject:
   # @section -- Subject
   valuesFile: ""
 
+  # -- Extra arguments to pass to the Helm install command.
+  # @section -- Subject
+  extraArgs: []
+
   postInstall:
     # -- The files to apply after the Helm chart is installed.
     # @section -- Subject
@@ -49,7 +55,11 @@ subject:
 
   # If present, the Helm chart will be upgraded after the post-install files are applied.
   upgrade:
-    # -- NOT SUPPORTED YET! (optional) The version of the Helm chart to upgrade to from the chart repository.
+    # -- The path to the Helm chart to upgrade to. Can be a local path or an `oci://` URL.
+    # @section -- Subject
+    path: ""
+
+    # -- (optional) The version of the Helm chart to upgrade to from the chart repository.
     # If not set, will use the latest.
     # @section -- Subject
     version: ""
@@ -62,9 +72,24 @@ subject:
     # @section -- Subject
     valuesFile: ""
 
+    # -- Extra arguments to pass to the Helm upgrade command.
+    # @section -- Subject
+    extraArgs: []
+
+  # If present, the Helm chart will be uninstalled after the tests are run.
+  uninstall:
+    # -- Whether to uninstall the subject or not.
+    # @section -- Subject
+    perform: false
+
+    # -- Extra arguments to pass to the Helm uninstall command.
+    # @section -- Subject
+    extraArgs: []
+
 # Define the cluster to use for the test, including how to create it and any configuration needed.
 cluster:
-  # -- The type of cluster to use for the test. Valid options are "kind" or "minikube"
+  # -- The type of cluster to use for the test. Valid options are "aks", "eks", "gke", "gke-autopilot", "kind" or
+  # "minikube"
   # @section -- Cluster
   type: ""
 
@@ -96,6 +121,8 @@ dependencies: []
 #     ...
 
 # -- The list of test to be run after deploying the Helm chart test subject.
-# Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test)
+# Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test),
+# [kubernetes-objects-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/kubernetes-objects-test), and
+# [delay](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/delay).
 # @section -- Tests
 tests: []

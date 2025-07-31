@@ -107,7 +107,11 @@
                             ]
                         },
                         "value": {
-                            "type": "null"
+                            "type": [
+                                "null",
+                                "number",
+                                "string"
+                            ]
                         }
                     }
                 },

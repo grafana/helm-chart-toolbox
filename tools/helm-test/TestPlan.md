@@ -29,18 +29,19 @@
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| subject.name | string | `""` | NOT SUPPORTED YET! The name of the Helm chart to use from the chart repository. |
+| subject.name | string | `""` | The name of the Helm chart to use from the chart repository. |
 | subject.namespace | string | `""` | The namespace to use when deploying the Helm chart. |
-| subject.path | string | `""` | The path to the Helm chart to test. |
+| subject.path | string | `""` | The path to the Helm chart or manifest file to test. |
 | subject.postInstall.files | list | `[]` | The files to apply after the Helm chart is installed. |
-| subject.releaseName | string | `""` | The releas name to use when deploying the Helm chart. If not set, will use the test plan name. |
-| subject.repository | string | `""` | NOT SUPPORTED YET! The Helm chart repository to use. |
+| subject.releaseName | string | `""` | The release name to use when deploying the Helm chart. If not set, will use the test plan name. |
+| subject.repository | string | `""` | The Helm chart repository to use. |
+| subject.type | string | `"helm"` | The type of the test subject. The supported types are "helm" and "manifest". |
 | subject.upgrade.values | object | `{}` | The values to use when upgrading the Helm chart. |
 | subject.upgrade.valuesFile | string | `""` | The path to a values file to use when upgrading the Helm chart. |
-| subject.upgrade.version | string | `""` | NOT SUPPORTED YET! (optional) The version of the Helm chart to upgrade to from the chart repository. If not set, will use the latest. |
+| subject.upgrade.version | optional | `""` | The version of the Helm chart to upgrade to from the chart repository. If not set, will use the latest. |
 | subject.values | object | `{}` | The values to use when deploying the Helm chart. |
 | subject.valuesFile | string | `""` | The path to a values file to use when deploying the Helm chart. |
-| subject.version | string | `""` | NOT SUPPORTED YET! (optional) The version of the Helm chart to use from the chart repository. If not set, will use the latest. |
+| subject.version | optional | `""` | The version of the Helm chart to use from the chart repository. If not set, will use the latest. |
 
 ### Tests
 

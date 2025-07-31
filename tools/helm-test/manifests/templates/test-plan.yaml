@@ -9,24 +9,28 @@ kind: TestPlan
 # @section -- General
 name: ""
 
-# Define the Helm chart test subject, how to configure it, how to deploy it, and optionallys how to upgrade it.
+# Define the test subject, how to configure it, how to deploy it, and optionally how to upgrade it.
 subject:
-  # -- The path to the Helm chart to test.
+  # -- The type of the test subject. The supported types are "helm" and "manifest".
+  # @section -- Subject
+  type: "helm"
+
+  # -- The path to the Helm chart or manifest file to test.
   # @section -- Subject
   path: ""
 
-  # -- NOT SUPPORTED YET! The Helm chart repository to use.
+  # -- The Helm chart repository to use.
   # @section -- Subject
   repository: ""
-  # -- NOT SUPPORTED YET! The name of the Helm chart to use from the chart repository.
+  # -- The name of the Helm chart to use from the chart repository.
   # @section -- Subject
   name: ""
-  # -- NOT SUPPORTED YET! (optional) The version of the Helm chart to use from the chart repository.
+  # -- (optional) The version of the Helm chart to use from the chart repository.
   # If not set, will use the latest.
   # @section -- Subject
   version: ""
 
-  # -- The releas name to use when deploying the Helm chart. If not set, will use the test plan name.
+  # -- The release name to use when deploying the Helm chart. If not set, will use the test plan name.
   # @section -- Subject
   releaseName: ""
 
@@ -49,7 +53,7 @@ subject:
 
   # If present, the Helm chart will be upgraded after the post-install files are applied.
   upgrade:
-    # -- NOT SUPPORTED YET! (optional) The version of the Helm chart to upgrade to from the chart repository.
+    # -- (optional) The version of the Helm chart to upgrade to from the chart repository.
     # If not set, will use the latest.
     # @section -- Subject
     version: ""

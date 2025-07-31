@@ -1,0 +1,19 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: manifest-subject
+
+subject:
+  type: manifest
+  path: pod.yaml
+
+cluster:
+  type: kind
+
+tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: Pod
+          name: nginx
+          namespace: default

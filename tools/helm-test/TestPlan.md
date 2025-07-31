@@ -38,10 +38,10 @@
 | subject.type | string | `"helm"` | The type of the test subject. The supported types are "helm" and "manifest". |
 | subject.upgrade.values | object | `{}` | The values to use when upgrading the Helm chart. |
 | subject.upgrade.valuesFile | string | `""` | The path to a values file to use when upgrading the Helm chart. |
-| subject.upgrade.version | optional | `""` | The version of the Helm chart to upgrade to from the chart repository. If not set, will use the latest. |
+| subject.upgrade.version | optional | `""` | The version of the Helm chart to upgrade to from the chart repository. Special values are "latest" to use the lastest version of the chart. |
 | subject.values | object | `{}` | The values to use when deploying the Helm chart. |
 | subject.valuesFile | string | `""` | The path to a values file to use when deploying the Helm chart. |
-| subject.version | optional | `""` | The version of the Helm chart to use from the chart repository. If not set, will use the latest. |
+| subject.version | optional | `""` | The version of the Helm chart to use from the chart repository. Special values are "latest", "previous-major", "previous-minor", and "previous-patch" to use the latest, previous major, previous minor, or previous patch version of the chart, respectively. |
 
 ### Tests
 

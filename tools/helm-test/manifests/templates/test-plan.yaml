@@ -25,8 +25,10 @@ subject:
   # -- The name of the Helm chart to use from the chart repository.
   # @section -- Subject
   name: ""
-  # -- (optional) The version of the Helm chart to use from the chart repository.
-  # If not set, will use the latest.
+
+  # -- (optional) The version of the Helm chart to use from the chart repository. Special values are "latest",
+  # "previous-major", "previous-minor", and "previous-patch" to use the latest, previous major, previous minor, or
+  # previous patch version of the chart, respectively.
   # @section -- Subject
   version: ""
 
@@ -53,8 +55,8 @@ subject:
 
   # If present, the Helm chart will be upgraded after the post-install files are applied.
   upgrade:
-    # -- (optional) The version of the Helm chart to upgrade to from the chart repository.
-    # If not set, will use the latest.
+    # -- (optional) The version of the Helm chart to upgrade to from the chart repository. Special values are "latest"
+    # to use the lastest version of the chart.
     # @section -- Subject
     version: ""
 

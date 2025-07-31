@@ -1,7 +1,7 @@
 ---
 apiVersion: helm-chart-toolbox.grafana.com/v1
 kind: TestPlan
-name: upgrade-by-version
+name: upgrade-by-patch-version
 subject:
   repository: https://grafana.github.io/helm-charts
   chart: alloy
@@ -22,12 +22,10 @@ subject:
             }
           }
 
-  version:
-    1.1
+  version: previous-patch
 
   upgrade:
-    version:
-      1.2.0
+    version: latest
 
 cluster:
   type: kind
@@ -42,4 +40,4 @@ tests:
         - env:
             PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
           queries:
-            - query: alloy_build_info{version="v1.10.0"}
+            - query: alloy_build_info{}

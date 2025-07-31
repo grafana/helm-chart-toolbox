@@ -1,0 +1,43 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: upgrade-by-major-version
+subject:
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy
+  values:
+    alloy:
+      configMap:
+        content: |-
+          prometheus.exporter.self "default" {}
+
+          prometheus.scrape "default" {
+            targets    = prometheus.exporter.self.default.targets
+            forward_to = [prometheus.remote_write.local_prom.receiver]
+          }
+
+          prometheus.remote_write "local_prom" {
+            endpoint {
+              url = "http://prometheus-server.prometheus.svc:9090/api/v1/write"
+            }
+          }
+
+  version: previous-major
+
+  upgrade:
+    version: latest
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: prometheus
+
+tests:
+  - type: query-test
+    values:
+      tests:
+        - env:
+            PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+          queries:
+            - query: alloy_build_info{}

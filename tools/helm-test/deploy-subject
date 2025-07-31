@@ -81,7 +81,20 @@ elif [ "${subjectType}" == "helm" ]; then
   versionArg=()
   chartVersion=$(yq eval '.subject.version // ""' "${testPlan}")
   if [ -n "${chartVersion}" ]; then
-    versionArg=(--version "${chartVersion}")
+    if [ "${chartVersion}" == "latest" ]; then
+      versionArg=()
+    elif [ "${chartVersion}" == "previous-major" ]; then
+      IFS='.' read -r major _ _ <<< "$(helm show chart "${chartArg[@]}" | yq .version)}"
+      versionArg=(--version "$((major > 0 ? major - 1 : 0))")
+    elif [ "${chartVersion}" == "previous-minor" ]; then
+      IFS='.' read -r major minor _ <<< "$(helm show chart "${chartArg[@]}" | yq .version)"
+      versionArg=(--version "${major}.$(( minor > 0 ? minor - 1 : 0 ))")
+    elif [ "${chartVersion}" == "previous-patch" ]; then
+      IFS='.' read -r major minor patch <<< "$(helm show chart "${chartArg[@]}" | yq .version)"
+      versionArg=(--version "${major}.${minor}.$(( patch > 0 ? patch - 1 : 0 ))")
+    else
+      versionArg=(--version "${chartVersion}")
+    fi
   fi
 
   # Check for values that are defined directly in the test plan
@@ -155,7 +168,11 @@ if [ "${subjectType}" == "helm" ]; then
     fi
 
     if [ -n "${upgradeVersion}" ]; then
-      versionArg=(--version "${upgradeVersion}")
+      if [ "${upgradeVersion}" == "latest" ]; then
+        versionArg=()
+      else
+        versionArg=(--version "${upgradeVersion}")
+      fi
     fi
 
     if [ -n "${upgradePath}" ]; then

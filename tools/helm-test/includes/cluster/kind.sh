@@ -2,6 +2,7 @@
 
 createKindCluster() {
   local testPlan=$1
+  local testDir=$(dirname "${testPlan}")
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(kind get clusters)
@@ -14,7 +15,12 @@ createKindCluster() {
     trap 'rm -f "${configFile}"' EXIT  # Ensure the temporary file is removed on exit
     echo "${clusterConfig}" > "${configFile}"
     createClusterCommand+=(--config "${configFile}")
-  elif [ -f "${clusterConfigFile}" ]; then
+  elif [ -n "${clusterConfigFile}" ]; then
+    clusterConfigFile=$(realpath "${testDir}/${clusterConfigFile}")
+    if [ ! -f "${clusterConfigFile}" ]; then
+      echo "Cluster config file ${clusterConfigFile} does not exist."
+      exit 1
+    fi
     createClusterCommand+=(--config "${clusterConfigFile}")
   fi
 

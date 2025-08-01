@@ -2,7 +2,7 @@
 
 createKindCluster() {
   local testPlan=$1
-  local testDir=$(dirname "${testPlan}")
+  testDir="$(dirname "${testPlan}")"
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(kind get clusters)

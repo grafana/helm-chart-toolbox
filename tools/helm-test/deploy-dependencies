@@ -190,6 +190,17 @@ if [ "${dependencyCount}" -ge 0 ]; then
       fi
     fi
 
+    dependencyUrl=$(yq eval ".dependencies[${i}].url // \"\"" "${testPlan}")
+    if [ -n "${dependencyUrl}" ]; then
+      echo "#### Deploying dependency by URL: ${dependencyUrl}"
+      namespace=$(yq eval ".dependencies[${i}].namespace // \"\"" "${testPlan}")
+      if [ -z "${namespace}" ]; then
+        kubectl apply -f "${dependencyUrl}"
+      else
+        kubectl apply --namespace "${namespace}" -f "${dependencyUrl}"
+      fi
+    fi
+
     dependencyManifest=$(yq eval ".dependencies[${i}].manifest // \"\"" "${testPlan}")
     if [ -n "${dependencyManifest}" ]; then
       manifestName=$(echo "${dependencyManifest}" | yq eval '.metadata.name' -)

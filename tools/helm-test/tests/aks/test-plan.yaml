@@ -11,7 +11,7 @@ cluster:
   appendRandomNumber: true
   type: aks
   args:
-    node-count: 1
-    tier: free
-    enable-managed-identity:
-    generate-ssh-keys:
+    - --node-count=1
+    - --tier=free
+    - --enable-managed-identity
+    - --generate-ssh-keys

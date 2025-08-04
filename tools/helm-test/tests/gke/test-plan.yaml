@@ -10,7 +10,7 @@ cluster:
   clusterName: helm-test
   appendRandomNumber: true
   type: gke
+  zone: us-central1
   args:
-    num-nodes: 1
-    zone: us-central1
-    labels: "source=helm-chart-toolbox-test"
+    - --num-nodes=1
+    - --labels source=helm-chart-toolbox-test

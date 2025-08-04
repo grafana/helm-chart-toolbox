@@ -7,21 +7,24 @@ createGKECluster() {
   listClustersCommand=(gcloud container clusters list --format="value(name)")
   createClusterCommand=(gcloud container clusters create "${clusterName}")
 
-  location=$(yq eval '.cluster.args.location // ""' "${testPlan}")
+  location=$(yq eval '.cluster.location // ""' "${testPlan}")
   if [ -n "${location}" ]; then
-      checkCommand+=(--location "${location}")
+      listClustersCommand+=(--location "${location}")
+      createClusterCommand+=(--location "${location}")
   fi
-  region=$(yq eval '.cluster.args.region // ""' "${testPlan}")
+  region=$(yq eval '.cluster.region // ""' "${testPlan}")
   if [ -n "${region}" ]; then
-      checkCommand+=(--region "${region}")
+      listClustersCommand+=(--region "${region}")
+      createClusterCommand+=(--region "${region}")
   fi
-  zone=$(yq eval '.cluster.args.zone // ""' "${testPlan}")
+  zone=$(yq eval '.cluster.zone // ""' "${testPlan}")
   if [ -n "${zone}" ]; then
-      checkCommand+=(--zone "${zone}")
+      listClustersCommand+=(--zone "${zone}")
+      createClusterCommand+=(--zone "${zone}")
   fi
 
   if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
-    argsString="$(yq eval -r -o=json '.cluster.args | to_entries | map("--" + .key + "=" + (.value | tostring)) | join(" ")' "${testPlan}")"
+    argsString="$(yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}")"
     IFS=" " read -r -a args <<< "${argsString}"
     createClusterCommand+=("${args[@]}")
     echo "${createClusterCommand[@]}"
@@ -34,27 +37,30 @@ createGKEAutopilotCluster() {
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(gcloud container clusters list --format="value(name)")
-  createCommand=(gcloud container clusters create-auto "${clusterName}")
+  createClusterCommand=(gcloud container clusters create-auto "${clusterName}")
 
-  location=$(yq eval '.cluster.args.location // ""' "${testPlan}")
+  location=$(yq eval '.cluster.location // ""' "${testPlan}")
   if [ -n "${location}" ]; then
-      checkCommand+=(--location "${location}")
+      listClustersCommand+=(--location "${location}")
+      createClusterCommand+=(--location "${location}")
   fi
-  region=$(yq eval '.cluster.args.region // ""' "${testPlan}")
+  region=$(yq eval '.cluster.region // ""' "${testPlan}")
   if [ -n "${region}" ]; then
-      checkCommand+=(--region "${region}")
+      listClustersCommand+=(--region "${region}")
+      createClusterCommand+=(--region "${region}")
   fi
-  zone=$(yq eval '.cluster.args.zone // ""' "${testPlan}")
+  zone=$(yq eval '.cluster.zone // ""' "${testPlan}")
   if [ -n "${zone}" ]; then
-      checkCommand+=(--zone "${zone}")
+      listClustersCommand+=(--zone "${zone}")
+      createClusterCommand+=(--zone "${zone}")
   fi
 
   if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
-    argsString="$(yq eval -r -o=json '.cluster.args | to_entries | map("--" + .key + "=" + (.value | tostring)) | join(" ")' "${testPlan}")"
+    argsString="$(yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}")"
     IFS=" " read -r -a args <<< "${argsString}"
-    createCommand+=("${args[@]}")
-    echo "${createCommand[@]}"
-    "${createCommand[@]}"
+    createClusterCommand+=("${args[@]}")
+    echo "${createClusterCommand[@]}"
+    "${createClusterCommand[@]}"
   fi
 }
 
@@ -65,17 +71,17 @@ deleteGKECluster() {
   listClustersCommand=(gcloud container clusters list --format="value(name)")
   deleteClusterCommand=(gcloud container clusters delete "${clusterName}" --quiet)
 
-  location=$(yq eval '.cluster.args.location // ""' "${testPlan}")
+  location=$(yq eval '.cluster.location // ""' "${testPlan}")
   if [ -n "${location}" ]; then
       listClustersCommand+=(--location "${location}")
       deleteClusterCommand+=(--location "${location}")
   fi
-  region=$(yq eval '.cluster.args.region // ""' "${testPlan}")
+  region=$(yq eval '.cluster.region // ""' "${testPlan}")
   if [ -n "${region}" ]; then
       listClustersCommand+=(--region "${region}")
       deleteClusterCommand+=(--region "${region}")
   fi
-  zone=$(yq eval '.cluster.args.zone // ""' "${testPlan}")
+  zone=$(yq eval '.cluster.zone // ""' "${testPlan}")
   if [ -n "${zone}" ]; then
       listClustersCommand+=(--zone "${zone}")
       deleteClusterCommand+=(--zone "${zone}")

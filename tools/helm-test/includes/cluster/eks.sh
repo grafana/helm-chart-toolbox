@@ -2,6 +2,7 @@
 
 createEKSCluster() {
   local testPlan=$1
+  testDir="$(dirname "${testPlan}")"
   clusterName=$(getClusterName "${testPlan}")
 
   getClusterCommand=(eksctl get cluster --name "${clusterName}")
@@ -14,6 +15,12 @@ createEKSCluster() {
     trap 'rm -f "${clusterConfigFile}"' EXIT  # Ensure the temporary file is removed on exit
     echo "${clusterConfig}" > "${clusterConfigFile}"
     createClusterCommand+=(--config-file "${configFile}")
+  elif [ -n "${clusterConfigFile}" ]; then
+    clusterConfigFile=$(realpath "${testDir}/${clusterConfigFile}")
+    if [ ! -f "${clusterConfigFile}" ]; then
+      echo "Cluster config file ${clusterConfigFile} does not exist."
+      exit 1
+    fi
   fi
 
   if ! "${getClusterCommand[@]}" 2>/dev/null ; then

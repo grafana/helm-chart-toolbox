@@ -11,5 +11,3 @@ cluster:
   appendRandomNumber: true
   type: openshift
   configFile: openshift-cluster-config.yaml
-  gcp:
-    serviceAccountKey: gcp.sak

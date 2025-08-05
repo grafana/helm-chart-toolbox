@@ -1,0 +1,15 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: openshift
+subject:
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy
+
+cluster:
+  name: openshift
+  appendRandomNumber: true
+  type: openshift
+  configFile: openshift-cluster-config.yaml
+  gcp:
+    serviceAccountKey: gcp.sak

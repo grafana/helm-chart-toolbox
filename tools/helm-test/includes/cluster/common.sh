@@ -3,7 +3,7 @@
 getClusterName() {
   local testPlan=$1
   testDir=$(dirname "$(readlink -f "${testPlan}")")
-  clusterName=$(yq eval '.name + "-test-cluster"' "${testPlan}")
+  clusterName=$(yq eval '.cluster.name // .name + "-test-cluster"' "${testPlan}")
   appendRandomNumber=$(yq eval '.cluster.appendRandomNumber // false' "${testPlan}")
   if [ "${appendRandomNumber}" = "true" ]; then
     randomNumberFile="${testDir}/.random"

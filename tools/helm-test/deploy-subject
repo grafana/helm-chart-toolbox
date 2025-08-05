@@ -126,27 +126,29 @@ elif [ "${subjectType}" == "helm" ]; then
 
   # Check for `set` directives
   setCount=$(yq eval '.subject.set | length - 0' "${testPlan}")
-  for i in $(seq 0 "${setCount}"); do
-    setKey=$(yq eval -r ".subject.set[${i}].key // \"\"" "${testPlan}")
-    setValue=$(yq eval -r ".subject.set[${i}].value // \"\"" "${testPlan}")
-    setValueFrom=$(yq eval -r ".subject.set[${i}].valueFrom // \"\"" "${testPlan}")
-    if [ -z "${setKey}" ]; then
-      echo "Skipping empty set key at index ${i}"
-      continue
-    fi
-    if [ -n "${setValue}" ]; then
-      valuesArg+=(--set "${setKey}=${setValue}")
-    elif [ -n "${setValueFrom}" ]; then
-      if [ "${setValueFrom}" == "clusterName" ]; then
-        valuesArg+=(--set "${setKey}=${clusterName}")
-      else
-        echo "Unknown valueFrom source: ${setValueFrom} at index ${i}"
-        exit 1
+  if [ "${setCount}" -gt 0 ]; then
+    for i in $(seq 0 "${setCount}"); do
+      setKey=$(yq eval -r ".subject.set[${i}].key // \"\"" "${testPlan}")
+      setValue=$(yq eval -r ".subject.set[${i}].value // \"\"" "${testPlan}")
+      setValueFrom=$(yq eval -r ".subject.set[${i}].valueFrom // \"\"" "${testPlan}")
+      if [ -z "${setKey}" ]; then
+        echo "Skipping empty set key at index ${i}"
+        continue
       fi
-    else
-      echo "Either value or valueFrom must be set for key: ${setKey} at index ${i}"
-    fi
-  done
+      if [ -n "${setValue}" ]; then
+        valuesArg+=(--set "${setKey}=${setValue}")
+      elif [ -n "${setValueFrom}" ]; then
+        if [ "${setValueFrom}" == "clusterName" ]; then
+          valuesArg+=(--set "${setKey}=${clusterName}")
+        else
+          echo "Unknown valueFrom source: ${setValueFrom} at index ${i}"
+          exit 1
+        fi
+      else
+        echo "Either value or valueFrom must be set for key: ${setKey} at index ${i}"
+      fi
+    done
+  fi
 
   # Run the helm command
   echo; echo "### Deploying Helm chart: ${chartName}"

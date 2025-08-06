@@ -8,4 +8,4 @@
 
 ## 0.1.0
 
-* First release of the delay chart.
+* First release of the Kubernetes Objects Test chart.

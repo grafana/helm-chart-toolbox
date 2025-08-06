@@ -6,8 +6,8 @@ type: application
 icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
 sources:
   - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/delay
-version: 0.1.0
-appVersion: 0.1.0
+version: 0.1.1
+appVersion: 0.1.1
 maintainers:
   - email: pete.wall@grafana.com
     name: petewall

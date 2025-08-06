@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.1
+
+* Added security contexts to the pod. (@petewall)
+
 ## 0.3.0
 
 * Add the ability to set `PROMETHEUS_TENANTID` (@MatthiasDrewsCS)

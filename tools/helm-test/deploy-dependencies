@@ -41,12 +41,13 @@ deployFluxCD() {
   echo "#### Deploying dependency: FluxCD"
   clusterType=$(yq eval '.cluster.type // ""' "${testPlan}")
   if [ "${clusterType}" == "openshift" ]; then
-    fluxManifestFile=$(mktemp /tmp/flux-manifest.yaml.XXXXXX)
-    trap 'rm -f "${fluxManifestFile}"' EXIT  # Ensure the temporary file is removed on exit
-    flux install --components source-controller,helm-controller --export > "${fluxManifestFile}"
-    echo "---" >> "${fluxManifestFile}"
-    curl https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/openshift/scc.yaml >> "${fluxManifestFile}"
-    kubectl apply -f "${fluxManifestFile}"
+    fluxManifestDir=$(mktemp -d /tmp/flux-openshift.XXXXXX)
+    flux install --components source-controller,helm-controller --export > "${fluxManifestDir}/flux-temp.yaml"
+    echo "---" >> "${fluxManifestDir}/flux-temp.yaml"
+    curl https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/openshift/scc.yaml >> "${fluxManifestDir}/flux-temp.yaml"
+    cp -f "${scriptDir}/manifests/presets/preset-flux-openshift-kustomization.yaml" "${fluxManifestDir}/kustomization.yaml"
+    kustomize build "${fluxManifestDir}" > "${fluxManifestDir}/flux-manifest.yaml"
+    kubectl apply -f "${fluxManifestDir}/flux-manifest.yaml"
   else
     flux install --components=source-controller,helm-controller 2> /dev/null
   fi

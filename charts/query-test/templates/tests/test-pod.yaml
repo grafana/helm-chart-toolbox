@@ -21,6 +21,9 @@ metadata:
     {{ $key }}: {{ $val | quote }}
     {{- end}}
 spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
   {{- if $.Values.pod.serviceAccount.name }}
   serviceAccountName: {{ $.Values.pod.serviceAccount.name }}
   {{- end }}
@@ -62,6 +65,13 @@ spec:
             sleep {{ $.Values.delay | int }}
           done
           exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
       envFrom:
 {{- if hasKey $test "env" }}
         - secretRef:

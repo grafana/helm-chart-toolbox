@@ -20,6 +20,9 @@ metadata:
     {{ $key }}: {{ $val | quote }}
     {{- end}}
 spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
   serviceAccountName: {{ include "helm-chart-toolbox.kubernetes-objects-test.serviceAccountName" . }}
   {{- if or $.Values.global.image.pullSecrets $.Values.image.pullSecrets }}
   imagePullSecrets:
@@ -59,6 +62,13 @@ spec:
             sleep {{ $.Values.delay | int }}
           done
           exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
       env:
         - name: KUBERNETES_VERSION
           value: "{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}"

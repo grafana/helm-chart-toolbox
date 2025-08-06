@@ -43,19 +43,22 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: "Helm"
     app.kubernetes.io/instance: "query-test"
-    app.kubernetes.io/version: 0.2.0
-    helm.sh/chart: "query-test-0.2.0"
+    app.kubernetes.io/version: 0.3.1
+    helm.sh/chart: "query-test-0.3.1"
   annotations:
     "helm.sh/hook": test
     "helm.sh/hook-delete-policy": before-hook-creation
     "helm.sh/hook-weight": "0"
 spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
   restartPolicy: Never
   nodeSelector:
         kubernetes.io/os: linux
   containers:
     - name: query-test
-      image: "ghcr.io/grafana/helm-chart-toolbox-query-test:0.2.0"
+      image: "ghcr.io/grafana/helm-chart-toolbox-query-test:0.3.1"
       command:
         - bash
         - -c
@@ -68,6 +71,13 @@ spec:
             sleep 30
           done
           exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
       envFrom:
         - secretRef:
             name: query-test-0

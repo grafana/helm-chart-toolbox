@@ -17,6 +17,7 @@ createOpenShiftCluster() {
     if [ -n "${clusterConfig}" ]; then
       yq ".cluster.config | .metadata.name=\"${clusterName}\"" "${testPlan}" > "${clusterInstallerFilesDir}/install-config.yaml"
     elif [ -n "${clusterConfigFile}" ]; then
+      clusterConfigFile=$(realpath "${testDir}/${clusterConfigFile}")
       if [ ! -f "${clusterConfigFile}" ]; then
         echo "Cluster config file ${clusterConfigFile} does not exist."
         exit 1

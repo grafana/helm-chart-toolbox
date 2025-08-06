@@ -10,8 +10,8 @@ creates a Pod to delay for two minutes:
       labels:
         app.kubernetes.io/instance: RELEASE-NAME
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/version: 0.1.0
-        helm.sh/chart: delay-0.1.0
+        app.kubernetes.io/version: 0.1.1
+        helm.sh/chart: delay-0.1.1
       name: RELEASE-NAME-delay
       namespace: NAMESPACE
     spec:
@@ -20,6 +20,17 @@ creates a Pod to delay for two minutes:
             - sleep 120
           image: docker.io/library/busybox:latest
           name: delay
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
       nodeSelector:
         kubernetes.io/os: linux
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000

@@ -11,7 +11,7 @@ name: ""
 
 # Define the test subject, how to configure it, how to deploy it, and optionally how to upgrade it.
 subject:
-  # -- The type of the test subject. The supported types are "helm" and "manifest".
+  # -- The type of the test subject. The supported types are "helm", "manifest", and "terraform".
   # @section -- Subject
   type: "helm"
 

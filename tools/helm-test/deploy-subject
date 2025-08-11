@@ -60,6 +60,14 @@ if [ "${subjectType}" == "manifest" ]; then
   applyCommand=(kubectl apply -f "${subjectPath}" "${namespaceArg[@]}" "${extraArgs[@]}")
   echo "${applyCommand[@]}"
   "${applyCommand[@]}"
+elif [ "${subjectType}" == "terraform" ]; then
+  echo; echo "### Deploying terraform"
+  initCommmand=(terraform init)
+  echo "${initCommmand[@]}"
+  "${initCommmand[@]}"
+  applyCommand=(terraform apply -auto-approve)
+  echo "${applyCommand[@]}"
+  "${applyCommand[@]}"
 elif [ "${subjectType}" == "helm" ]; then
   releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
 

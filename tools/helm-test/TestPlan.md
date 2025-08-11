@@ -35,7 +35,7 @@
 | subject.postInstall.files | list | `[]` | The files to apply after the Helm chart is installed. |
 | subject.releaseName | string | `""` | The release name to use when deploying the Helm chart. If not set, will use the test plan name. |
 | subject.repository | string | `""` | The Helm chart repository to use. |
-| subject.type | string | `"helm"` | The type of the test subject. The supported types are "helm" and "manifest". |
+| subject.type | string | `"helm"` | The type of the test subject. The supported types are "helm", "manifest", and "terraform". |
 | subject.upgrade.values | object | `{}` | The values to use when upgrading the Helm chart. |
 | subject.upgrade.valuesFile | string | `""` | The path to a values file to use when upgrading the Helm chart. |
 | subject.upgrade.version | optional | `""` | The version of the Helm chart to upgrade to from the chart repository. Special values are "latest" to use the lastest version of the chart. |

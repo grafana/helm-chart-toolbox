@@ -14,7 +14,7 @@ createEKSCluster() {
     clusterConfigFile=$(mktemp /tmp/eks-cluster-config.yaml.XXXXXX)
     trap 'rm -f "${clusterConfigFile}"' EXIT  # Ensure the temporary file is removed on exit
     echo "${clusterConfig}" > "${clusterConfigFile}"
-    createClusterCommand+=(--config-file "${configFile}")
+    createClusterCommand+=(--config-file "${clusterConfigFile}")
   elif [ -n "${clusterConfigFile}" ]; then
     clusterConfigFile=$(realpath "${testDir}/${clusterConfigFile}")
     if [ ! -f "${clusterConfigFile}" ]; then

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.2
+
+* Image base now pinned to ubuntu:24.04 (@petewall)
+
 ## 0.3.1
 
 * Added security contexts to the pod. (@petewall)

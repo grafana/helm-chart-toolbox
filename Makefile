@@ -9,13 +9,22 @@ tools/helm-test/TestPlan.md: tools/helm-test/manifests/templates/test-plan.yaml
 ##@ Test
 
 .PHONY: lint
-lint: lint-actions lint-shell lint-yaml lint-zizmor ## Run all linters
+lint: lint-actions lint-dockerfile lint-shell lint-yaml lint-zizmor ## Run all linters
 
 WORKFLOW_FILES = $(shell find .github/workflows -name "*.yml" -o -name "*.yaml")
 .PHONY: lint-actions
 lint-actions: ## Lint GitHub Action workflows
 	@echo "Linting GitHub Action workflows..."
 	@actionlint $(WORKFLOW_FILES)
+
+DOCKERFILES = $(shell find . -name "Dockerfile")
+.PHONY: lint-dockerfile
+lint-dockerfile: ## Lint Dockerfiles
+	@echo "Linting Dockerfiles..."
+	@for df in $(DOCKERFILES); do \
+  		echo "  $$df"; \
+		docker run --rm -i -v $(shell pwd)/.hadolint.yaml:/.hadolint.yaml hadolint/hadolint < "$$df" || exit 1; \
+	done
 
 SHELL_SCRIPTS = $(shell find . -name "*.sh")
 .PHONY: lint-shell

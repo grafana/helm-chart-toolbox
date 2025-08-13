@@ -2,6 +2,14 @@
 version: 2
 updates:
   - package-ecosystem: docker
+    directory: /charts/kubernetes-objects-test/container
+    schedule:
+      interval: daily
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
     directory: /charts/query-test/container
     schedule:
       interval: daily
@@ -11,6 +19,14 @@ updates:
 
   - package-ecosystem: docker
     directory: /tools/doc-generator
+    schedule:
+      interval: daily
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /tools/kubectl-image
     schedule:
       interval: daily
     labels:

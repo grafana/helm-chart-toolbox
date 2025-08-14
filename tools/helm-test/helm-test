@@ -45,6 +45,11 @@ fi
 
 "${scriptDir}/deploy-subject" "${testDir}"
 
+runUninstall=$(yq eval '.subject.uninstall // false' "${testPlan}")
+if [ "${runUninstall}" == "true" ]; then
+  "${scriptDir}/uninstall-subject" "${testDir}"
+fi
+
 "${scriptDir}/run-tests" "${testDir}"
 
 deleteCluster() {

@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -eo pipefail  # Exit immediately if a command fails.
+
+scriptDir=$(dirname "$(readlink -f "$0")")
+source "${scriptDir}/includes/cluster/common.sh"
+
+usage() {
+  echo "USAGE: uninstall-subject [<test-dir>]"
+  echo ""
+  echo "Uninstalls the subject to be tested."
+  echo ""
+  echo "  <test-dir>           - The test directory. If not provided, the current directory is used."
+  echo "                         Expects this file to exist:"
+  echo "    test-plan.yaml        - The test plan."
+}
+
+# Argument parsing
+if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
+  usage
+  exit 0
+fi
+
+testDir=$1
+if [ -z "${testDir}" ]; then
+  testDir=$(pwd)
+elif [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid directory: ${testDir}"
+  usage
+  exit 1
+fi
+testPlan=$(realpath "${testDir}/test-plan.yaml")
+
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}"
+  usage
+  exit 1
+fi
+
+# Start of script
+clusterName=$(getClusterName "${testPlan}")
+
+subjectType=$(yq eval '.subject.type // "helm"' "${testPlan}")
+subjectPath=$(yq eval '.subject.path // ""' "${testPlan}")
+
+extraArgs=()
+for arg in $(yq eval -r '.subject.extraArgs[] // ""' "${testPlan}"); do
+  extraArgs+=("${arg}")
+done
+
+# Check for a namespace
+namespaceArg=()
+releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
+if [ -n "${releaseNamespace}" ]; then
+  namespaceArg=(--namespace "${releaseNamespace}" --create-namespace)
+fi
+
+if [ "${subjectType}" == "manifest" ]; then
+  echo; echo "### Uninstalling manifest: ${subjectPath}"
+  subjectPath=$(realpath "${testDir}/${subjectPath}")
+  deleteCommand=(kubectl delete -f "${subjectPath}" "${namespaceArg[@]}" "${extraArgs[@]}")
+  echo "${deleteCommand[@]}"
+  "${deleteCommand[@]}"
+#elif [ "${subjectType}" == "terraform" ]; then
+#  echo; echo "### Deploying via terraform: ${subjectPath}"
+#  subjectPath=$(realpath "${testDir}/${subjectPath}")
+#  initCommmand=(terraform -chdir="${subjectPath}" init)
+#  echo "${initCommmand[@]}"
+#  "${initCommmand[@]}"
+#  applyCommand=(terraform -chdir="${subjectPath}" apply -auto-approve)
+#  echo "${applyCommand[@]}"
+#  "${applyCommand[@]}"
+elif [ "${subjectType}" == "helm" ]; then
+  releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
+  chart=$(yq eval '.subject.chart // ""' "${testPlan}")
+  repository=$(yq eval '.subject.repository // ""' "${testPlan}")
+
+  if [ -n "${chart}" ] && [ -n "${repository}" ]; then
+    chartName=$(helm show chart --repo "${repository}" "${chart}" | yq .name)
+  fi
+
+  if [ -n "${subjectPath}" ]; then
+    if ! grep "^oci://" <<< "${subjectPath}" > /dev/null; then
+      subjectPath=$(realpath "${testDir}/${subjectPath}")
+    fi
+    chartName=$(helm show chart "${subjectPath}" | yq .name)
+  fi
+
+  echo; echo "### Uninstalling Helm chart: ${chartName}"
+  helmCommand=(helm delete --wait "${releaseName}" "${namespaceArg[@]}" "${extraArgs[@]}")
+  echo "${helmCommand[@]}"
+  "${helmCommand[@]}"
+fi

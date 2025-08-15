@@ -1,1 +1,5 @@
 node_modules
+
+
+tools/k8s-test/internal/helmtestfs/manifests/
+tools/k8s-test/bin/

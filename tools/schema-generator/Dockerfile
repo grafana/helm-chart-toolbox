@@ -1,4 +1,4 @@
-FROM alpine/helm:3.18.4
+FROM alpine/helm:3.18.5
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Schema Generator"

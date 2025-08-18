@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-## 0.1.1
+## 0.1.3
+
+* Update kubectl image to fix arm64 platform (@petewall)
+
+## 0.1.2
 
 * Image now based on top of helm-chart-toolbox-kubectl (@petewall)
 

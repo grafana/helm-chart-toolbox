@@ -6,8 +6,8 @@ type: application
 icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
 sources:
   - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/kubernetes-objects-test
-version: 0.1.2
-appVersion: 0.1.2
+version: 0.1.3
+appVersion: 0.1.3
 maintainers:
   - email: pete.wall@grafana.com
     name: petewall

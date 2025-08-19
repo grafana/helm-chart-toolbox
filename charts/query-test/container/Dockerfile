@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.description="Helm Chart Toolbox - Query Test"
 LABEL org.opencontainers.image.licenses=Apache-2.0
 
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y bc curl gettext jq && \
+    apt-get install --no-install-recommends -y bc ca-certificates curl gettext jq && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=pyroscope /usr/bin/profilecli /usr/bin/profilecli
 

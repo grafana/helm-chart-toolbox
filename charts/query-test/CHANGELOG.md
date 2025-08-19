@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.3
+
+* Add supplemental query scripts for running individual queries. Useful for debugging. (@petewall)
+
 ## 0.3.2
 
 * Image base now pinned to ubuntu:24.04 (@petewall)

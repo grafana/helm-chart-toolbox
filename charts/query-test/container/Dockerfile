@@ -10,4 +10,4 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=pyroscope /usr/bin/profilecli /usr/bin/profilecli
 
-COPY ["query-test.sh", "/usr/bin/"]
+COPY ["*.sh", "/usr/local/bin/"]

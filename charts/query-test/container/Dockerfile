@@ -10,4 +10,4 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=pyroscope /usr/bin/profilecli /usr/bin/profilecli
 
-COPY ["*.sh", "/usr/local/bin/"]
+COPY ["*.sh", "/usr/bin/"]

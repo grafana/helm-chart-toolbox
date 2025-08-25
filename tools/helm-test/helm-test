@@ -41,6 +41,15 @@ if [ "${CREATE_CLUSTER}" == "true" ]; then
   "${scriptDir}/create-cluster" "${testDir}"
 fi
 
+deleteCluster() {
+  "${scriptDir}/delete-cluster" "${testDir}"
+}
+
+DELETE_CLUSTER=${DELETE_CLUSTER:-false}
+if [ "${DELETE_CLUSTER}" == "true" ]; then
+  trap deleteCluster EXIT
+fi
+
 "${scriptDir}/deploy-dependencies" "${testDir}"
 
 "${scriptDir}/deploy-subject" "${testDir}"
@@ -51,12 +60,3 @@ if [ "${runUninstall}" == "true" ]; then
 fi
 
 "${scriptDir}/run-tests" "${testDir}"
-
-deleteCluster() {
-  "${scriptDir}/delete-cluster" "${testDir}"
-}
-
-DELETE_CLUSTER=${DELETE_CLUSTER:-false}
-if [ "${DELETE_CLUSTER}" == "true" ]; then
-  trap deleteCluster EXIT
-fi

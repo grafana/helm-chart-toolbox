@@ -1,4 +1,4 @@
-FROM grafana/pyroscope:1.14.0 AS pyroscope
+FROM grafana/pyroscope:1.14.1 AS pyroscope
 FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox

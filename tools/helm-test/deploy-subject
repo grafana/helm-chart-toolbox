@@ -72,7 +72,7 @@ elif [ "${subjectType}" == "terraform" ]; then
 elif [ "${subjectType}" == "helmfile" ]; then
   echo; echo "### Deploying via helmfile: ${subjectPath}"
   subjectPath=$(realpath "${testDir}/${subjectPath}")
-  applyCommand=(helmfile apply -f "${subjectPath}" --namespace "${releaseNamespace}" "${extraArgs[@]}")
+  applyCommand=(helmfile apply -f "${subjectPath}" "${namespaceArg[@]}" "${extraArgs[@]}")
   echo "${applyCommand[@]}"
   "${applyCommand[@]}"
 elif [ "${subjectType}" == "helm" ]; then

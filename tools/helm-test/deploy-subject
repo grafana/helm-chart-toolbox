@@ -69,6 +69,12 @@ elif [ "${subjectType}" == "terraform" ]; then
   applyCommand=(terraform -chdir="${subjectPath}" apply -auto-approve)
   echo "${applyCommand[@]}"
   "${applyCommand[@]}"
+elif [ "${subjectType}" == "helmfile" ]; then
+  echo; echo "### Deploying via helmfile: ${subjectPath}"
+  subjectPath=$(realpath "${testDir}/${subjectPath}")
+  applyCommand=(helmfile apply -f "${subjectPath}" --namespace "${releaseNamespace}" "${extraArgs[@]}")
+  echo "${applyCommand[@]}"
+  "${applyCommand[@]}"
 elif [ "${subjectType}" == "helm" ]; then
   releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
 

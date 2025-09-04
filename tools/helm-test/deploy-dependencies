@@ -170,12 +170,24 @@ if [ "${dependencyCount}" -ge 0 ]; then
     elif [ "${presetName}" == "test-parameters" ]; then deployTestParameters "${i}";
     fi
 
+    namespace=$(yq eval ".dependencies[${i}].namespace // \"\"" "${testPlan}")
+    if [ -n "${namespace}" ]; then
+      if ! kubectl get namespace "${namespace}" > /dev/null 2>&1; then
+        echo "#### Creating namespace: ${namespace}"
+        kubectl create namespace "${namespace}"
+      fi
+    fi
+
     dependencyDirectory=$(yq eval ".dependencies[${i}].directory // \"\"" "${testPlan}")
     if [ -n "${dependencyDirectory}" ]; then
       dependencyDirectory=$(realpath "${testDir}/${dependencyDirectory}")
       if [ -d "${dependencyDirectory}" ]; then
         echo "#### Deploying dependency by directory: ${dependencyDirectory}"
-        kubectl apply -f "${dependencyDirectory}"
+        if [ -z "${namespace}" ]; then
+          kubectl apply -f "${dependencyDirectory}"
+        else
+          kubectl apply --namespace "${namespace}" -f "${dependencyDirectory}"
+        fi
       else
         echo "Dependency directory not found: ${dependencyDirectory}."
         exit 1
@@ -187,7 +199,6 @@ if [ "${dependencyCount}" -ge 0 ]; then
       dependencyFile=$(realpath "${testDir}/${dependencyFile}")
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
-        namespace=$(yq eval ".dependencies[${i}].namespace // \"\"" "${testPlan}")
         if [ -z "${namespace}" ]; then
           kubectl apply -f "${dependencyFile}"
         else
@@ -202,7 +213,6 @@ if [ "${dependencyCount}" -ge 0 ]; then
     dependencyUrl=$(yq eval ".dependencies[${i}].url // \"\"" "${testPlan}")
     if [ -n "${dependencyUrl}" ]; then
       echo "#### Deploying dependency by URL: ${dependencyUrl}"
-      namespace=$(yq eval ".dependencies[${i}].namespace // \"\"" "${testPlan}")
       if [ -z "${namespace}" ]; then
         kubectl apply -f "${dependencyUrl}"
       else

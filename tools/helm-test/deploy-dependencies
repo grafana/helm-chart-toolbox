@@ -42,9 +42,8 @@ deployFluxCD() {
   clusterType=$(yq eval '.cluster.type // ""' "${testPlan}")
   if [ "${clusterType}" == "openshift" ]; then
     fluxManifestDir=$(mktemp -d /tmp/flux-openshift.XXXXXX)
-    flux install --components source-controller,helm-controller --export > "${fluxManifestDir}/flux-temp.yaml"
-    echo "---" >> "${fluxManifestDir}/flux-temp.yaml"
-    curl https://raw.githubusercontent.com/fluxcd/flux2/main/manifests/openshift/scc.yaml >> "${fluxManifestDir}/flux-temp.yaml"
+    flux install --components source-controller,helm-controller --export > "${fluxManifestDir}/gotk-components.yaml"
+    cp -f "${scriptDir}/manifests/presets/preset-flux-openshift-scc.yaml" "${fluxManifestDir}/scc.yaml"
     cp -f "${scriptDir}/manifests/presets/preset-flux-openshift-kustomization.yaml" "${fluxManifestDir}/kustomization.yaml"
     kustomize build "${fluxManifestDir}" > "${fluxManifestDir}/flux-manifest.yaml"
     kubectl apply -f "${fluxManifestDir}/flux-manifest.yaml"

@@ -1,5 +1,5 @@
 FROM jnorwood/helm-docs:v1.14.2 AS helm-docs
-FROM alpine/helm:3.18.6
+FROM alpine/helm:3.19.0
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Documentation Generator"

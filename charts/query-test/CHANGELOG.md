@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update Profile CLI to 1.14.1
+
 ## 0.3.3
 
 * Add supplemental query scripts for running individual queries. Useful for debugging. (@petewall)

@@ -3,6 +3,9 @@ VERSION := $(shell yq eval '.version' Chart.yaml)
 IMAGE ?= $(shell yq eval '.image.registry + "/" + .image.repository' values.yaml)
 PLATFORMS ?= linux/arm64,linux/amd64
 
+docs/check.md: check-values.yaml
+	docker run --rm --volume $(shell pwd):/src --workdir /src ghcr.io/grafana/helm-chart-toolbox-doc-generator --file $< > $@
+
 .SECONDEXPANSION:
 README.md: values.yaml Chart.yaml $$(wildcard README.md.gotmpl)
 	docker run --rm --platform linux/amd64 --volume $(shell pwd):/chart ghcr.io/grafana/helm-chart-toolbox-doc-generator --chart /chart > $@
@@ -27,7 +30,7 @@ clean:
 	rm -rf README.md values.schema.json .temp
 
 .PHONY: build
-build: README.md Chart.lock values.schema.json
+build: README.md docs/check.md Chart.lock values.schema.json
 
 .PHONY: test
 test: build

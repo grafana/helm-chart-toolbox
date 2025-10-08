@@ -1,0 +1,21 @@
+# -- The kind of the Kubernetes object to check for (e.g. Pod, Deployment, Service, etc...).
+# @section -- Check
+kind: ""
+
+# -- The name of the Kubernetes object to check for.
+# @section -- Check
+name: ""
+
+# -- The namespace of the Kubernetes object to check for.
+# @section -- Check
+namespace: ""
+
+# -- A label selector to filter the Kubernetes objects to check for.
+# @section -- Check
+labels: {}
+
+# Additional checks instead of the existence of the object.
+expect:
+  # -- Check that a certain number of matching objects have been returned.
+  # @section -- Expectations
+  count: 1

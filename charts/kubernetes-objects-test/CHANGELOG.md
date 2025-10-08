@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.2.0
+
+* Add the ability to use label matchers to find objects. (@petewall)
+
 ## 0.1.3
 
 * Update kubectl image to fix arm64 platform (@petewall)

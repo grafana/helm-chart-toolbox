@@ -14,6 +14,7 @@ usage() {
   echo '{'
   echo '  "kind": "<Object kind>",           # Required. For example: "pod", "deployment", "service", etc...'
   echo '  "name": "<Object name>",           # Optional, if not provided all objects of the kind will be returned.'
+  echo '  "labels": {"key": "value"},        # Optional, apply a label selector to the lookup.'
   echo '  "namespace": "<Object namespace>", # Optional, if not provided the default namespace will be used.'
   echo '  "expect": {}                       # Optional, a list of expectations. If empty, will check that at least one object of the kind exists.'
   echo '}'
@@ -86,6 +87,7 @@ count=$(jq -r ".checks | length-1" "${CHECKS_FILE}")
 for i in $(seq 0 "${count}"); do
   kind=$(jq -r --argjson i "${i}" '.checks[$i].kind | ascii_downcase' "${CHECKS_FILE}" | envsubst)
   name=$(jq -r --argjson i "${i}" '.checks[$i].name // ""' "${CHECKS_FILE}" | envsubst)
+  labels=$(jq -r --argjson i "${i}" '.checks[$i].labels // {} | to_entries | map("\(.key)=\(.value | tostring)") | join(",")' "${CHECKS_FILE}" | envsubst)
   namespace=$(jq -r --argjson i "${i}" '.checks[$i].namespace // ""' "${CHECKS_FILE}" | envsubst)
 
   subject="${kind}"
@@ -93,6 +95,10 @@ for i in $(seq 0 "${count}"); do
   if [ -n "${name}" ]; then
     subject+=" named ${name}"
     command+=("${name}")
+  fi
+  if [ -n "${labels}" ]; then
+    subject+=" with labels ${labels}"
+    command+=("--selector" "${labels}")
   fi
   if [ -n "${namespace}" ]; then
     subject+=" in namespace ${namespace}"

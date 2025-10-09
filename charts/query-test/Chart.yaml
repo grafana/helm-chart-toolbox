@@ -6,8 +6,8 @@ type: application
 icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
 sources:
   - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/query-test
-version: 0.3.3
-appVersion: 0.3.3
+version: 0.3.4
+appVersion: 0.3.4
 maintainers:
   - email: pete.wall@grafana.com
     name: petewall

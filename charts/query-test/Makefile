@@ -44,7 +44,7 @@ clean:
 	rm -rf README.md values.schema.json .temp
 
 .PHONY: build
-build: README.md Chart.lock values.schema.json
+build: README.md Chart.lock values.schema.json examples
 
 .PHONY: test
 test: build

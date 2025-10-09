@@ -1,3 +1,4 @@
+---
 # -- The kind of the Kubernetes object to check for (e.g. Pod, Deployment, Service, etc...).
 # @section -- Check
 kind: ""

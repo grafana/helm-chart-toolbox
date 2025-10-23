@@ -7,6 +7,6 @@
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
-    "json-diff": "^1.0.6"
+    "json-diff": "1.0.6"
   }
 }

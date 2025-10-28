@@ -177,15 +177,17 @@ if [ "${dependencyCount}" -ge 0 ]; then
       fi
     fi
 
+    verb=$(yq eval ".dependencies[${i}].verb // \"apply\"" "${testPlan}")
+
     dependencyDirectory=$(yq eval ".dependencies[${i}].directory // \"\"" "${testPlan}")
     if [ -n "${dependencyDirectory}" ]; then
       dependencyDirectory=$(realpath "${testDir}/${dependencyDirectory}")
       if [ -d "${dependencyDirectory}" ]; then
         echo "#### Deploying dependency by directory: ${dependencyDirectory}"
         if [ -z "${namespace}" ]; then
-          kubectl apply -f "${dependencyDirectory}"
+          kubectl "${verb}" -f "${dependencyDirectory}"
         else
-          kubectl apply --namespace "${namespace}" -f "${dependencyDirectory}"
+          kubectl "${verb}" --namespace "${namespace}" -f "${dependencyDirectory}"
         fi
       else
         echo "Dependency directory not found: ${dependencyDirectory}."
@@ -199,9 +201,9 @@ if [ "${dependencyCount}" -ge 0 ]; then
       if [ -f "${dependencyFile}" ]; then
         echo "#### Deploying dependency by file: ${dependencyFile}"
         if [ -z "${namespace}" ]; then
-          kubectl apply -f "${dependencyFile}"
+          kubectl "${verb}" -f "${dependencyFile}"
         else
-          kubectl apply --namespace "${namespace}" -f "${dependencyFile}"
+          kubectl "${verb}" --namespace "${namespace}" -f "${dependencyFile}"
         fi
       else
         echo "Dependency file not found: ${dependencyFile}."
@@ -213,9 +215,9 @@ if [ "${dependencyCount}" -ge 0 ]; then
     if [ -n "${dependencyUrl}" ]; then
       echo "#### Deploying dependency by URL: ${dependencyUrl}"
       if [ -z "${namespace}" ]; then
-        kubectl apply -f "${dependencyUrl}"
+        kubectl "${verb}" -f "${dependencyUrl}"
       else
-        kubectl apply --namespace "${namespace}" -f "${dependencyUrl}"
+        kubectl "${verb}" --namespace "${namespace}" -f "${dependencyUrl}"
       fi
     fi
 
@@ -228,7 +230,7 @@ if [ "${dependencyCount}" -ge 0 ]; then
       manifestFile=$(mktemp /tmp/dependency-manifest.yaml.XXXXXX)
       trap 'rm -f "${manifestFile}"' EXIT  # Ensure the temporary file is removed on exit
       echo "${dependencyManifest}" > "${manifestFile}"
-      kubectl apply -f "${manifestFile}"
+      kubectl "${verb}" -f "${manifestFile}"
     fi
   done
 fi

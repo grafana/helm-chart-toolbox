@@ -1,3 +1,4 @@
+---
 # -- Which phase to run this diagnostic. Valid options: `beforeDependencies`, `afterDependencies`, `beforeSubject`, `afterSubject`, `beforeTest`, `afterTest`, `final`
 # @section -- Diagnostics
 phase: final

@@ -13,7 +13,7 @@ usage() {
   echo "  <test-dir>           - The test directory. Defaults to the current directory."
   echo ""
   echo "Options:"
-  echo "  --result <status>    - Previous step result (success or failure). Defaults to failure."
+  echo "  --result <status>    - Previous step result (success or failure). Defaults to success."
   echo "  -h, --help           - Show this help text."
 }
 
@@ -54,7 +54,7 @@ run_command_with_grouping() {
     echo "::group::${title}"
   fi
 
-  echo "##### ${title}"
+  echo "### Diagnostic: ${title}"
   echo "+ ${cmd[*]}"
   set +e
   "${cmd[@]}"
@@ -71,7 +71,7 @@ run_command_with_grouping() {
 
 phase=""
 testDir=""
-result="failure"
+result="success"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -145,22 +145,28 @@ if [ ! -f "${testPlan}" ]; then
   exit 1
 fi
 
-subjectNamespace=$(yq eval -r '.subject.namespace // ""' "${testPlan}")
-if [ -z "${subjectNamespace}" ]; then
-  subjectNamespace="toolbox"
-fi
-
 diagnosticCount=$(yq eval '.diagnostics // [] | length' "${testPlan}")
 if [ "${diagnosticCount}" -eq 0 ]; then
-  echo "No diagnostics defined in ${testPlan}."
   exit 0
 fi
 
 matchingDiagnostics=0
 
 for diagnosticIndex in $(seq 0 $((diagnosticCount - 1))); do
-  diagnosticPhase=$(yq eval -r ".diagnostics[${diagnosticIndex}].phase // \"final\"" "${testPlan}")
-  if [ "${diagnosticPhase}" != "${phase}" ]; then
+  phaseMatches=0
+  while IFS= read -r diagnosticPhase; do
+    if [ -z "${diagnosticPhase}" ]; then
+      continue
+    fi
+    if [ "${diagnosticPhase}" = "${phase}" ]; then
+      phaseMatches=1
+      break
+    fi
+  done < <(
+    yq eval -r ".diagnostics[${diagnosticIndex}] | (.phases // [(.phase // \"final\")])[]?" "${testPlan}"
+  )
+
+  if [ "${phaseMatches}" -ne 1 ]; then
     continue
   fi
 
@@ -169,71 +175,60 @@ for diagnosticIndex in $(seq 0 $((diagnosticCount - 1))); do
     continue
   fi
 
-  diagnosticName=$(yq eval -r ".diagnostics[${diagnosticIndex}].name // \"Diagnostic $((diagnosticIndex + 1))\"" "${testPlan}")
   useLogGrouping=$(yq eval -r ".diagnostics[${diagnosticIndex}].useLogGrouping // true" "${testPlan}")
   groupingMode="plain"
   if is_true "${useLogGrouping}" && [ -n "${GITHUB_ACTIONS:-}" ]; then
     groupingMode="github"
   fi
 
-  targetCount=$(yq eval ".diagnostics[${diagnosticIndex}].targets // [] | length" "${testPlan}")
-  if [ "${targetCount}" -eq 0 ]; then
-    echo "Diagnostic '${diagnosticName}' has no targets defined; skipping."
+  commandCount=$(yq eval ".diagnostics[${diagnosticIndex}].commands // [] | length" "${testPlan}")
+  if [ "${commandCount}" -eq 0 ]; then
+    echo "Diagnostic #${diagnosticIndex} has no commands defined; skipping."
     continue
   fi
 
   matchingDiagnostics=$((matchingDiagnostics + 1))
 
-  echo
-  echo "### Diagnostic: ${diagnosticName}"
+  for commandIndex in $(seq 0 $((commandCount - 1))); do
+    rawCommand=$(yq eval -r ".diagnostics[${diagnosticIndex}].commands[${commandIndex}] // \"\"" "${testPlan}")
+    commandString="${rawCommand#"${rawCommand%%[!$' \t\r\n']*}"}"
+    commandString="${commandString%"${commandString##*[!$' \t\r\n']}"}"
 
-  for targetIndex in $(seq 0 $((targetCount - 1))); do
-    namespace=$(yq eval -r ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].namespace // \"${subjectNamespace}\"" "${testPlan}")
-    targetLabel=$(yq eval -r ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].name // \"Target $((targetIndex + 1))\"" "${testPlan}")
-
-    echo "#### Target: ${targetLabel} (namespace: ${namespace})"
-
-    actionPerformed=false
-
-    objectsCount=$(yq eval ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].objects // [] | length" "${testPlan}")
-    if [ "${objectsCount}" -gt 0 ]; then
-      actionPerformed=true
-      for objectIndex in $(seq 0 $((objectsCount - 1))); do
-        resource=$(yq eval -r ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].objects[${objectIndex}]" "${testPlan}")
-        if [ -n "${resource}" ] && [ "${resource}" != "null" ]; then
-          title="${diagnosticName}: ${resource} in namespace ${namespace}"
-          run_command_with_grouping "${groupingMode}" "${title}" kubectl get "${resource}" --namespace "${namespace}" -o yaml
-        fi
-      done
+    if [ -z "${commandString}" ]; then
+      echo "Skipping empty command for diagnostic #${diagnosticIndex} (index ${commandIndex})."
+      continue
     fi
 
-    if is_true "$(yq eval -r ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].events // false" "${testPlan}")"; then
-      actionPerformed=true
-      title="${diagnosticName}: events in namespace ${namespace}"
-      run_command_with_grouping "${groupingMode}" "${title}" kubectl get events --namespace "${namespace}" --sort-by=.lastTimestamp
+    if [[ "${commandString}" == *';'* || "${commandString}" == *'|'* || "${commandString}" == *'&'* ]]; then
+      echo "Skipping command '${commandString}' because chaining characters (;, |, &) are not allowed."
+      continue
     fi
 
-    if is_true "$(yq eval -r ".diagnostics[${diagnosticIndex}].targets[${targetIndex}].logs // false" "${testPlan}")"; then
-      actionPerformed=true
-      if ! podList=$(kubectl get pods --namespace "${namespace}" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); then
-        echo "Failed to list pods in namespace ${namespace}" >&2
-      elif [ -z "${podList}" ]; then
-        echo "No pods found in namespace ${namespace}"
-      else
-        printf '%s\n' "${podList}" | while IFS= read -r podName; do
-          [ -z "${podName}" ] && continue
-          title="${diagnosticName}: logs for pod ${podName} (namespace ${namespace})"
-          run_command_with_grouping "${groupingMode}" "${title}" kubectl logs --namespace "${namespace}" "${podName}" --all-containers --tail 200
-        done
-      fi
+    IFS=' ' read -r -a commandArgs <<< "${commandString}"
+    if [ "${#commandArgs[@]}" -lt 2 ]; then
+      echo "Skipping command '${commandString}' because it must include a verb after the executable."
+      continue
     fi
 
-    if [ "${actionPerformed}" = false ]; then
-      echo "No diagnostic actions configured for this target."
+    allowedCommand=0
+    case "${commandArgs[0]}" in
+      kubectl)
+        case "${commandArgs[1]}" in
+          get|logs) allowedCommand=1 ;;
+        esac
+        ;;
+      helm)
+        case "${commandArgs[1]}" in
+          list) allowedCommand=1 ;;
+        esac
+        ;;
+    esac
+
+    if [ "${allowedCommand}" -ne 1 ]; then
+      echo "Skipping command '${commandString}' because it must start with 'kubectl get', 'kubectl logs', or 'helm list'."
+      continue
     fi
+
+    run_command_with_grouping "${groupingMode}" "${commandString}" "${commandArgs[@]}"
   done
 done
-
-if [ "${matchingDiagnostics}" -eq 0 ]; then
-  echo "No diagnostics to run for phase '${phase}' with result '${result}'."
-fi

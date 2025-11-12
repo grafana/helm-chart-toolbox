@@ -1,7 +1,7 @@
 ---
 # -- Which phase to run this diagnostic. Valid options: `beforeDependencies`, `afterDependencies`, `beforeSubject`, `afterSubject`, `beforeTest`, `afterTest`, `final`
 # @section -- Diagnostics
-phase: final
+phases: [final]
 
 # -- Should diagnostics run only on failures or always. Valid options: `onFailure`, `always`.
 # @section -- Diagnostics
@@ -11,10 +11,5 @@ when: onFailure
 # @section -- Diagnostics
 useLogGrouping: true
 
-# -- Diagnostic targets. Valid options
-# Valid options:
-#   namespace: <namespace to run diagnostics against
-#   objects: [services, deployments, daemonsets, statefulsets, pods]
-#   events: true
-#   logs: true
-targets: []
+# -- Commands to run, only `kubectl get`, `kubectl logs`, `helm list`
+commands: []

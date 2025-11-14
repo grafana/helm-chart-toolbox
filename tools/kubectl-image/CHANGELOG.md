@@ -4,6 +4,10 @@
 
 ## 0.1.1
 
+* Added 1.34. (@petewall)
+
+## 0.1.1
+
 * Fixed ARM64 compatibility. (@petewall)
 
 ## 0.1.0

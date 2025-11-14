@@ -102,6 +102,11 @@ dependencies: []
 #     ...
 
 # -- The list of test to be run after deploying the Helm chart test subject.
-# Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test)
+# Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test), and
+# [kubernetes-objects-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/kubernetes-objects-test)
 # @section -- Tests
 tests: []
+
+# -- The list of diagnostics to run, often after a failure.
+# @section -- Tests
+diagnostics: []

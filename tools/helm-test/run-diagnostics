@@ -29,11 +29,11 @@ is_true() {
 }
 
 should_run_diagnostic() {
-  local whenLower
-  whenLower=$(to_lower "$1")
+  local when
+  when=$(to_lower "$1")
   local result="$2"
 
-  case "${whenLower}" in
+  case "${when}" in
     ""|always) return 0 ;;
     onfailure) [[ "${result}" == "failure" ]] && return 0 || return 1 ;;
     onsuccess) [[ "${result}" == "success" ]] && return 0 || return 1 ;;

@@ -40,12 +40,6 @@ if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
     echo "#### Running test: ${testType}"
-    if [ "${testType}" == "delay" ]; then
-      helm test delay --namespace toolbox --hide-notes --logs
-    elif [ "${testType}" == "query-test" ]; then
-      helm test query-test --namespace toolbox --hide-notes --logs
-    elif [ "${testType}" == "kubernetes-objects-test" ]; then
-      helm test kubernetes-objects-test --namespace toolbox --hide-notes --logs
-    fi
+    helm test "${testType}" --namespace toolbox --logs
   done
 fi

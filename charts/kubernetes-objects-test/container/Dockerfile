@@ -1,4 +1,4 @@
-FROM ghcr.io/grafana/helm-chart-toolbox-kubectl:0.1.1@sha256:c137478627cc51b379541f845d6b16a96d7770ae4ea3366934e5bc8c6ddf7173
+FROM ghcr.io/grafana/helm-chart-toolbox-kubectl:0.1.2@sha256:c7adcc4db378d73fbc1d6a83b3ca2d7a6dcab40c4a54a8246da01d3235569083
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Kubernetes Objects Test"

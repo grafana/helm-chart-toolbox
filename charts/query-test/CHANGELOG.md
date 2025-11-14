@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update Profile CLI to 1.16.0
+
 ## 0.3.4
 
 * Update Profile CLI to 1.15.0

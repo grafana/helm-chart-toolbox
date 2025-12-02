@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.3
+
+* Added coreutils. (@petewall)
+
 ## 0.1.2
 
 * Added 1.34. (@petewall)

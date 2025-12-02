@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-tool
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Kubectl"
 LABEL org.opencontainers.image.licenses=Apache-2.0
 
-RUN apk add --no-cache bash curl gettext jq ca-certificates
+RUN apk add --no-cache bash coreutils curl gettext jq ca-certificates
 
 # Download kubectl at various versions
 ARG TARGETARCH

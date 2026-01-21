@@ -21,6 +21,7 @@ push-latest: .temp/image-built-$(VERSION) ## Push the container image with 'late
 .PHONY: clean
 clean: ## Clean up generated files
 	rm -rf .temp
+	docker rmi $(IMAGE):$(VERSION)
 
 ##@ Test
 

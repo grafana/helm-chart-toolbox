@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Update Alpine base image to 3.23
+
 ## 0.1.3
 
 * Added coreutils. (@petewall)

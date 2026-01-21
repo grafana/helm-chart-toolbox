@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 usage() {
   echo "USAGE: $0 [--chart <Chart Dir>] [--file values.yaml [--template <Go Template File>]]"
@@ -91,4 +91,3 @@ helm-docs --chart-to-generate . --output-file README.md.generated
 
 cat "${CHART_DIR}/README.md.generated"
 rm "${CHART_DIR}/README.md.generated"
-

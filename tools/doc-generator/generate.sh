@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 usage() {
   echo "USAGE: $0 [--chart <Chart Dir>] [--file values.yaml [--template <Go Template File>]]"

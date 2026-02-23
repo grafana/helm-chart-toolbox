@@ -89,17 +89,32 @@ cluster:
 # Finally, you can specify a manifest as inline YAML.
 # @section -- Dependencies
 dependencies: []
+# Deploy a preset dependency
 # - preset: prometheus
 # - preset: loki
 # - preset: tempo
 # - preset: pyroscope
 # - preset: grafana
+
+# Deploy manifests from a directory
 # - directory: path/to/a/directory/with/manifests
+
+# Deploy a manifest from a file
 # - file: path/to/a/single/manifest.yaml
+
+# Deploy a manifest from inline
 # - manifest:
 #     apiVersion: v1
 #     kind: ConfigMap
 #     ...
+
+# Deploy a manifest from a URL
+# - url: https://wwww.example.com/manifest.yaml
+
+# Sleep before deploying the dependency. Or use stand-alone for a delay between dependencies.
+# - sleep: 30
+# Sleep after deploying the dependency.
+# - sleepAfter: 30
 
 # -- The list of test to be run after deploying the Helm chart test subject.
 # Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test)

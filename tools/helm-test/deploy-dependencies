@@ -160,6 +160,11 @@ kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
 dependencyCount=$(yq eval '.dependencies | length - 1' "${testPlan}")
 if [ "${dependencyCount}" -ge 0 ]; then
   for i in $(seq 0 "${dependencyCount}"); do
+    sleep=$(yq eval ".dependencies[${i}].sleep // \"\"" "${testPlan}")
+    if [ -n "${sleep}" ]; then
+      sleep "${sleep}"
+    fi
+
     presetName=$(yq eval ".dependencies[${i}].preset" "${testPlan}")
     if [ "${presetName}" == "grafana" ]; then           deployPresetGrafana "${i}";
     elif [ "${presetName}" == "prometheus" ]; then      deployPresetPrometheus "${i}";
@@ -231,6 +236,11 @@ if [ "${dependencyCount}" -ge 0 ]; then
       trap 'rm -f "${manifestFile}"' EXIT  # Ensure the temporary file is removed on exit
       echo "${dependencyManifest}" > "${manifestFile}"
       kubectl "${verb}" -f "${manifestFile}"
+    fi
+
+    sleep=$(yq eval ".dependencies[${i}].sleepAfter // \"\"" "${testPlan}")
+    if [ -n "${sleep}" ]; then
+      sleep "${sleep}"
     fi
   done
 fi

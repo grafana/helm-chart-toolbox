@@ -9,7 +9,7 @@ createMinikubeCluster() {
     command+=("--driver=${driver}")
   fi
 
-  argsString="$(yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}")"
+  argsString="$(yq eval -r -o=json '.cluster.args // [] | join(" ")' "${testPlan}")"
   if [ "${argsString}" != "null" ] && [ -n "${argsString}" ]; then
     IFS=" " read -r -a args <<< "${argsString}"
     command+=("${args[@]}")

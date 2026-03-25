@@ -46,7 +46,8 @@ deployFluxCD() {
     cp -f "${scriptDir}/manifests/presets/preset-flux-openshift-scc.yaml" "${fluxManifestDir}/scc.yaml"
     cp -f "${scriptDir}/manifests/presets/preset-flux-openshift-kustomization.yaml" "${fluxManifestDir}/kustomization.yaml"
     kustomize build "${fluxManifestDir}" > "${fluxManifestDir}/flux-manifest.yaml"
-    kubectl apply -f "${fluxManifestDir}/flux-manifest.yaml"
+    # Skip client-side validation because OpenShift's API server may not be reachable for OpenAPI schema download
+    kubectl apply --validate=false -f "${fluxManifestDir}/flux-manifest.yaml"
   else
     flux install --components=source-controller,helm-controller 2> /dev/null
   fi

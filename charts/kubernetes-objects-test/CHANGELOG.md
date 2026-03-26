@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
+
+* Split the container version into its own version.
 
 ## 0.2.0
 

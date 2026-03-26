@@ -43,7 +43,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: "Helm"
     app.kubernetes.io/instance: "query-test"
-    app.kubernetes.io/version: 0.3.4
+    app.kubernetes.io/version: 1.0.0
     helm.sh/chart: "query-test-0.3.4"
   annotations:
     "helm.sh/hook": test
@@ -58,7 +58,7 @@ spec:
         kubernetes.io/os: linux
   containers:
     - name: query-test
-      image: "ghcr.io/grafana/helm-chart-toolbox-query-test:0.3.4"
+      image: "ghcr.io/grafana/helm-chart-toolbox-query-test:1.0.0"
       command:
         - bash
         - -c

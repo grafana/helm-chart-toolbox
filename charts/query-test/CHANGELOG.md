@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.5
 
-* Update Profile CLI to 1.18.0
+* Split the container version into its own version.
 
 ## 0.3.4
 

@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
+
+* Removed default tag from image reference, since it never applied. (@petewall)
 
 ## 0.1.1
 

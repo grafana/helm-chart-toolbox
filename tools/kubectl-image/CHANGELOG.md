@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.1.4
 
-* Update Alpine base image to 3.23
+* Update Alpine base image. (@petewall)
+* Added 1.35. (@petewall)
 
 ## 0.1.3
 

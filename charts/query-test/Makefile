@@ -1,6 +1,6 @@
 SHELL = /bin/bash
-VERSION := $(shell yq eval '.version' Chart.yaml)
 IMAGE ?= $(shell yq eval '.image.registry + "/" + .image.repository' values.yaml)
+IMAGE_VERSION := $(shell yq eval '.appVersion' Chart.yaml)
 PLATFORMS ?= linux/arm64,linux/amd64
 
 .SECONDEXPANSION:
@@ -31,13 +31,13 @@ schema-mods/definitions/test.schema.json: definitions/test-values.yaml
 	docker run --rm --platform linux/amd64 --volume $(shell pwd)/definitions:/definitions ghcr.io/grafana/helm-chart-toolbox-schema-generator --file /$< > $@
 
 # Container image
-build-image: .temp/image-built-$(VERSION)
-.temp/image-built-$(VERSION): container/Dockerfile container/query-test.sh
-	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(VERSION) container
-	mkdir -p .temp && touch .temp/image-built-${VERSION}
+build-image: .temp/image-built-$(IMAGE_VERSION)
+.temp/image-built-$(IMAGE_VERSION): container/Dockerfile container/query-test.sh
+	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(IMAGE_VERSION) container
+	mkdir -p .temp && touch .temp/image-built-${IMAGE_VERSION}
 
-push-image: .temp/image-built-$(VERSION)
-	docker push $(IMAGE):$(VERSION)
+push-image: .temp/image-built-$(IMAGE_VERSION)
+	docker push $(IMAGE):$(IMAGE_VERSION)
 
 .PHONY: clean
 clean:

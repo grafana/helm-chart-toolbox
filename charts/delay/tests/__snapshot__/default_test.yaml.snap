@@ -10,8 +10,8 @@ creates a Pod to delay for two minutes:
       labels:
         app.kubernetes.io/instance: RELEASE-NAME
         app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/version: 0.1.1
-        helm.sh/chart: delay-0.1.1
+        app.kubernetes.io/version: 0.1.2
+        helm.sh/chart: delay-0.1.2
       name: RELEASE-NAME-delay
       namespace: NAMESPACE
     spec:

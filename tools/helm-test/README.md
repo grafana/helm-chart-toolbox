@@ -79,7 +79,12 @@ This section defines the Kubernetes cluster to be created and used for testing. 
 
 #### Minikube
 
-No additional options are available. Notes that only one Minikube cluster can be created at a time.
+| Field            | Description                                                        | Required | Default |
+|------------------|--------------------------------------------------------------------|----------|---------|
+| `cluster.driver` | The driver to use for Minikube (e.g. `virtualbox`, `qemu`, `docker`) | No       |         |
+| `cluster.args`   | Additional arguments to pass to `minikube start`                   | No       | `[]`    |
+
+Note that only one Minikube cluster can be created at a time.
 
 ### Dependencies
 

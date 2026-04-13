@@ -5,22 +5,44 @@ scriptDir=$(dirname "$(readlink -f "$0")")
 source "${scriptDir}/includes/cluster/common.sh"
 
 usage() {
-  echo "USAGE: deploy-subject [<test-dir>]"
+  echo "USAGE: deploy-subject [flags] [<test-dir>]"
   echo ""
   echo "Deploys the subject to be tested."
   echo ""
   echo "  <test-dir>           - The test directory. If not provided, the current directory is used."
   echo "                         Expects this file to exist:"
   echo "    test-plan.yaml        - The test plan."
+  echo ""
+  echo "  --no-upgrade         - Skip the upgrade phase (if one is defined)."
+  echo "  --upgrade-only       - Skip the initial deployment and only run the upgrade phase."
 }
 
 # Argument parsing
-if [ "${1}" == "-h" ] || [ "${1}" == "-help" ] || [ "${1}" == "--help" ]; then
-  usage
-  exit 0
-fi
+noUpgrade=false
+upgradeOnly=false
+testDir=""
 
-testDir=$1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|-help|--help)
+      usage
+      exit 0
+      ;;
+    --no-upgrade)
+      noUpgrade=true
+      shift
+      ;;
+    --upgrade-only)
+      upgradeOnly=true
+      shift
+      ;;
+    *)
+      testDir="$1"
+      shift
+      ;;
+  esac
+done
+
 if [ -z "${testDir}" ]; then
   testDir=$(pwd)
 elif [ ! -d "${testDir}" ]; then
@@ -54,13 +76,13 @@ if [ -n "${releaseNamespace}" ]; then
   namespaceArg=(--namespace "${releaseNamespace}" --create-namespace)
 fi
 
-if [ "${subjectType}" == "manifest" ]; then
+if [ "${upgradeOnly}" != "true" ] && [ "${subjectType}" == "manifest" ]; then
   echo; echo "### Deploying manifest: ${subjectPath}"
   subjectPath=$(realpath "${testDir}/${subjectPath}")
   applyCommand=(kubectl apply -f "${subjectPath}" "${namespaceArg[@]}" "${extraArgs[@]}")
   echo "${applyCommand[@]}"
   "${applyCommand[@]}"
-elif [ "${subjectType}" == "terraform" ]; then
+elif [ "${upgradeOnly}" != "true" ] && [ "${subjectType}" == "terraform" ]; then
   echo; echo "### Deploying via terraform: ${subjectPath}"
   subjectPath=$(realpath "${testDir}/${subjectPath}")
   initCommmand=(terraform -chdir="${subjectPath}" init)
@@ -69,7 +91,7 @@ elif [ "${subjectType}" == "terraform" ]; then
   applyCommand=(terraform -chdir="${subjectPath}" apply -auto-approve)
   echo "${applyCommand[@]}"
   "${applyCommand[@]}"
-elif [ "${subjectType}" == "helmfile" ]; then
+elif [ "${upgradeOnly}" != "true" ] && [ "${subjectType}" == "helmfile" ]; then
   echo; echo "### Deploying via helmfile: ${subjectPath}"
   subjectPath=$(realpath "${testDir}/${subjectPath}")
   applyCommand=(helmfile apply -f "${subjectPath}" "${namespaceArg[@]}" "${extraArgs[@]}")
@@ -166,29 +188,39 @@ elif [ "${subjectType}" == "helm" ]; then
   fi
 
   # Run the helm command
-  echo; echo "### Deploying Helm chart: ${chartName}"
-  helmCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}" "${extraArgs[@]}")
-  echo "${helmCommand[@]}"
-  "${helmCommand[@]}"
+  if [ "${upgradeOnly}" != "true" ]; then
+    echo; echo "### Deploying Helm chart: ${chartName}"
+    helmCommand+=("${chartArg[@]}" "${versionArg[@]}" "${namespaceArg[@]}" "${valuesArg[@]}" "${extraArgs[@]}")
+    echo "${helmCommand[@]}"
+    "${helmCommand[@]}"
+  fi
 fi
 
-# Run post-install options
-postInstallFilesCount=$(yq eval '.subject.postInstall.files | length - 1' "${testPlan}")
-if [ "${postInstallFilesCount}" -ge 0 ]; then
-  for i in $(seq 0 "${postInstallFilesCount}"); do
-    postInstallFile=$(yq eval ".subject.postInstall.files[${i}]" "${testPlan}")
-    postInstallFile=$(realpath "${testDir}/${postInstallFile}")
-    if [ -f "${postInstallFile}" ]; then
-      echo "#### Deploying Post-install manifest: ${postInstallFile}"
-      kubectl apply -f "${postInstallFile}"
-    else
-      echo "Post-install file not found: ${postInstallFile}."
-      exit 1
-    fi
-  done
+if [ "${upgradeOnly}" != "true" ]; then
+  # Optional delay after subject deployment
+  sleep=$(yq eval ".subject.sleepAfter // \"\"" "${testPlan}")
+  if [ -n "${sleep}" ]; then
+    sleep "${sleep}"
+  fi
+
+  # Run post-install options
+  postInstallFilesCount=$(yq eval '.subject.postInstall.files | length - 1' "${testPlan}")
+  if [ "${postInstallFilesCount}" -ge 0 ]; then
+    for i in $(seq 0 "${postInstallFilesCount}"); do
+      postInstallFile=$(yq eval ".subject.postInstall.files[${i}]" "${testPlan}")
+      postInstallFile=$(realpath "${testDir}/${postInstallFile}")
+      if [ -f "${postInstallFile}" ]; then
+        echo "#### Deploying Post-install manifest: ${postInstallFile}"
+        kubectl apply -f "${postInstallFile}"
+      else
+        echo "Post-install file not found: ${postInstallFile}."
+        exit 1
+      fi
+    done
+  fi
 fi
 
-if [ "${subjectType}" == "helm" ]; then
+if [ "${noUpgrade}" != "true" ] && [ "${subjectType}" == "helm" ]; then
   upgradeValues=$(yq eval '.subject.upgrade.values // ""' "${testPlan}")
   upgradeValuesFile=$(yq eval '.subject.upgrade.valuesFile // ""' "${testPlan}")
   upgradeVersion=$(yq eval '.subject.upgrade.version // ""' "${testPlan}")
@@ -237,5 +269,11 @@ if [ "${subjectType}" == "helm" ]; then
     done
     echo "${helmUpgradeCommand[@]}"
     "${helmUpgradeCommand[@]}"
+
+    # Optional delay after subject upgrade
+    sleep=$(yq eval ".subject.upgrade.sleepAfter // \"\"" "${testPlan}")
+    if [ -n "${sleep}" ]; then
+      sleep "${sleep}"
+    fi
   fi
 fi

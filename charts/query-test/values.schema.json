@@ -94,6 +94,12 @@
                 "expect": {
                     "type": "object",
                     "properties": {
+                        "count": {
+                            "type": [
+                                "null",
+                                "integer"
+                            ]
+                        },
                         "operator": {
                             "type": "string",
                             "enum": [

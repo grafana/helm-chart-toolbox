@@ -9,6 +9,10 @@ type: ""
 
 # An optional expectation to validate the query result.
 expect:
+  # -- (number) The exact number of results the query should return. Supported for `promql` and `logql` queries. Use `0` to assert that no results are returned.
+  # @section -- Expectation
+  count: null
+
   # -- (number) The expected value of the query result.
   # @section -- Expectation
   value: null

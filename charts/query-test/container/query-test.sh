@@ -77,7 +77,7 @@ for i in $(seq 0 "${count}"); do
       fi
       ;;
     logql)
-      if ! logs_query "${query}"; then
+      if ! logs_query "${query}" "${expectedCount}"; then
         exit 1
       fi
       ;;

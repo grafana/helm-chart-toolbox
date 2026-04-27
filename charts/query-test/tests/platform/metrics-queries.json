@@ -1,0 +1,24 @@
+{
+  "queries": [
+    {
+      "query": "up",
+      "type": "promql",
+      "expect": {
+        "operator": ">=",
+        "value": 1
+      }
+    },
+    {
+      "query": "count(up)",
+      "type": "promql",
+      "expect": {
+        "operator": ">=",
+        "value": 1
+      }
+    },
+    {
+      "query": "scrape_samples_scraped",
+      "type": "promql"
+    }
+  ]
+}

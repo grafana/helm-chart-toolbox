@@ -5,6 +5,9 @@
         "expect": {
             "type": "object",
             "properties": {
+                "count": {
+                    "type": "null"
+                },
                 "operator": {
                     "type": "string"
                 },

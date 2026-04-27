@@ -79,8 +79,11 @@ function metrics_query {
 }
 
 function logs_query {
-  echo "Running LogQL query: ${LOKI_URL}?query=${1}..."
-  result=$(curl -s --get -H "X-Scope-OrgID:${LOKI_TENANTID}" -u "${LOKI_USER}:${LOKI_PASS}" "${LOKI_URL}" --data-urlencode "query=${1}")
+  local query="${1}"
+  local expectedCount="${2}"
+
+  echo "Running LogQL query: ${LOKI_URL}?query=${query}..."
+  result=$(curl -s --get -H "X-Scope-OrgID:${LOKI_TENANTID}" -u "${LOKI_USER}:${LOKI_PASS}" "${LOKI_URL}" --data-urlencode "query=${query}")
   status=$(echo "${result}" | jq -r .status)
   if [ "${status}" != "success" ]; then
     echo "Query failed!"
@@ -89,10 +92,19 @@ function logs_query {
   fi
 
   resultCount=$(echo "${result}" | jq '.data.result | length')
-  if [ "${resultCount}" -eq 0 ]; then
-    echo "Query returned no results"
-    echo "Result: ${result}"
-    return 1
+  if [ -n "${expectedCount}" ]; then
+    echo "  Expected ${expectedCount} results. Found ${resultCount} results."
+    if [ "${resultCount}" -ne "${expectedCount}" ]; then
+      echo "  Unexpected number of results returned!"
+      echo "Result: ${result}"
+      return 1
+    fi
+  else
+    if [ "${resultCount}" -eq 0 ]; then
+      echo "Query returned no results"
+      echo "Result: ${result}"
+      return 1
+    fi
   fi
 }
 

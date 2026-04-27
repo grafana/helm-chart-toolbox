@@ -3,6 +3,7 @@
 ## 0.3.5
 
 * Split the container version into its own version.
+* Document `expect.count` for `logql` queries, allowing tests to assert that exactly `0` log entries match.
 
 ## 0.3.4
 

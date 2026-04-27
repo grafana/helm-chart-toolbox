@@ -10,6 +10,7 @@
         "type": {"enum": ["promql", "logql", "traceql", "pyroql", null]},
         "expect": {
           "properties": {
+            "count": {"type": ["null", "integer"]},
             "operator": {"enum": ["<", "<=", "=", "==", "!=", ">=", ">"]},
             "value": {"type": ["null", "number", "string"]}
           }

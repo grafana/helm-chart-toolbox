@@ -1,0 +1,19 @@
+{
+  "queries": [
+    {
+      "query": "count_over_time({job=~\".+\"}[5m])",
+      "type": "logql"
+    },
+    {
+      "query": "sum(count_over_time({job=~\".+\"}[5m]))",
+      "type": "logql"
+    },
+    {
+      "query": "count_over_time({job=\"helm-chart-toolbox-platform-test-nonexistent\", namespace=\"definitely-not-a-real-namespace-zzz\"}[5m])",
+      "type": "logql",
+      "expect": {
+        "count": 0
+      }
+    }
+  ]
+}

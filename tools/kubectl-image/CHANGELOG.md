@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+* Update Alpine base image. (@petewall)
+* Added 1.36. (@petewall)
+
 ## 0.1.4
 
 * Update Alpine base image. (@petewall)

@@ -29,7 +29,7 @@ createOpenShiftCluster() {
     "${createClusterCommand[@]}"
 
   fi
-  ln -s "${clusterInstallerFilesDir}/auth/kubeconfig" "$(dirname "${testDir}")/kubeconfig.yaml"
+  ln -sfn "${clusterInstallerFilesDir}/auth/kubeconfig" "${testDir}/kubeconfig.yaml"
 }
 
 deleteOpenShiftCluster() {

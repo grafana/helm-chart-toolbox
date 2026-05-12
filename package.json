@@ -5,6 +5,7 @@
   "repository": "git@github.com:grafana/helm-chart-toolbox.git",
   "author": "",
   "license": "Apache-2.0",
+  "packageManager": "yarn@1.22.22",
   "dependencies": {},
   "devDependencies": {
     "json-diff": "1.0.6"

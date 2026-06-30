@@ -30,6 +30,18 @@ createGKECluster() {
     echo "${createClusterCommand[@]}"
     "${createClusterCommand[@]}"
   fi
+
+  # A private-endpoint cluster's auto-written kubeconfig uses the unreachable private IP.
+  # When DNS access is enabled, repoint kubeconfig at the IAM-gated DNS endpoint so
+  # kubectl/helm connect via IAM (no public endpoint, no IP allow-listing).
+  if yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}" | grep -q -- "--enable-dns-access"; then
+    getCredsCommand=(gcloud container clusters get-credentials "${clusterName}" --dns-endpoint)
+    [ -n "${location}" ] && getCredsCommand+=(--location "${location}")
+    [ -n "${region}" ] && getCredsCommand+=(--region "${region}")
+    [ -n "${zone}" ] && getCredsCommand+=(--zone "${zone}")
+    echo "${getCredsCommand[@]}"
+    "${getCredsCommand[@]}"
+  fi
 }
 
 createGKEAutopilotCluster() {
@@ -61,6 +73,18 @@ createGKEAutopilotCluster() {
     createClusterCommand+=("${args[@]}")
     echo "${createClusterCommand[@]}"
     "${createClusterCommand[@]}"
+  fi
+
+  # A private-endpoint cluster's auto-written kubeconfig uses the unreachable private IP.
+  # When DNS access is enabled, repoint kubeconfig at the IAM-gated DNS endpoint so
+  # kubectl/helm connect via IAM (no public endpoint, no IP allow-listing).
+  if yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}" | grep -q -- "--enable-dns-access"; then
+    getCredsCommand=(gcloud container clusters get-credentials "${clusterName}" --dns-endpoint)
+    [ -n "${location}" ] && getCredsCommand+=(--location "${location}")
+    [ -n "${region}" ] && getCredsCommand+=(--region "${region}")
+    [ -n "${zone}" ] && getCredsCommand+=(--zone "${zone}")
+    echo "${getCredsCommand[@]}"
+    "${getCredsCommand[@]}"
   fi
 }
 

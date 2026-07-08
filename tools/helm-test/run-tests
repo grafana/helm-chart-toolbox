@@ -35,11 +35,12 @@ fi
 
 # Start of script
 echo; echo "### Running tests"
+helmTestTimeout="${HELM_TEST_TIMEOUT:-5m}"
 testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
-    echo "#### Running test: ${testType}"
-    helm test "${testType}" --namespace toolbox --logs
+    echo "#### Running test: ${testType} (timeout: ${helmTestTimeout})"
+    helm test "${testType}" --namespace toolbox --logs --timeout "${helmTestTimeout}"
   done
 fi

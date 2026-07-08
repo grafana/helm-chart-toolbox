@@ -29,14 +29,6 @@ run-tests
 delete-cluster
 ```
 
-### Environment variables
-
-| Variable            | Description                                                | Default |
-|---------------------|------------------------------------------------------------|---------|
-| `CREATE_CLUSTER`    | Create the cluster before testing.                         | `true`  |
-| `DELETE_CLUSTER`    | Delete the cluster after testing.                          | `false` |
-| `HELM_TEST_TIMEOUT` | Timeout passed to `helm test` for each test (e.g. `15m`).  | `5m`    |
-
 ## Test Plans
 
 The `test-plan.yaml` file defines the test plan for the Helm chart. It includes the following sections:

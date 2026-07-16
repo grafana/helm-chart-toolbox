@@ -26,7 +26,7 @@ createOpenShiftCluster() {
     fi
 
     echo "${createClusterCommand[@]}"
-    "${createClusterCommand[@]}"
+    "${createClusterCommand[@]}" 2>&1 | redactSecrets
 
   fi
   ln -sfn "${clusterInstallerFilesDir}/auth/kubeconfig" "${testDir}/kubeconfig.yaml"

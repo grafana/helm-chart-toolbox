@@ -39,7 +39,14 @@ testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then
   for i in $(seq 0 "${testCount}"); do
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
+
+    # Read any additional helm test args defined for this test.
+    testArgs=()
+    while IFS= read -r arg; do
+      [ -n "${arg}" ] && testArgs+=("${arg}")
+    done < <(yq eval ".tests[${i}].args[]" "${testPlan}")
+
     echo "#### Running test: ${testType}"
-    helm test "${testType}" --namespace toolbox --logs
+    helm test "${testType}" --namespace toolbox --logs "${testArgs[@]}"
   done
 fi

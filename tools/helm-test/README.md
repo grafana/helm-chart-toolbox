@@ -110,7 +110,8 @@ FluxCD is always deployed to the cluster, because this helps managing deploying 
 This section defines the tests to be run after the Helm chart has been deployed. It is an array of objects, each with
 the following fields:
 
-| Field    | Description                                                | Required | Default |
-|----------|------------------------------------------------------------|----------|---------|
-| `type`   | The type of test to be run. Supported types: `query-test`. | Yes      |         |
-| `values` | The values to be used for the test as inline YAML.         | No       | `{}`    |
+| Field    | Description                                                                                   | Required | Default |
+|----------|-----------------------------------------------------------------------------------------------|----------|---------|
+| `type`   | The type of test to be run. Supported types: `query-test`.                                    | Yes      |         |
+| `values` | The values to be used for the test as inline YAML.                                             | No       | `{}`    |
+| `args`   | Additional arguments passed to `helm test`, for example `["--timeout", "10m"]`.               | No       | `[]`    |

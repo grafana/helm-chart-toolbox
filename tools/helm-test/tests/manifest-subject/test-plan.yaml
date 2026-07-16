@@ -12,6 +12,9 @@ cluster:
 
 tests:
   - type: kubernetes-objects-test
+    args:
+      - --timeout
+      - 10m
     values:
       checks:
         - kind: Pod

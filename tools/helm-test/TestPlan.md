@@ -48,4 +48,6 @@
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test) |
+| tests[].type | string | `""` | The type of the test to run. |
+| tests[].args | list | `[]` | Additional arguments to pass to the `helm test` command for this test, for example `["--timeout", "10m"]`. |
 <!-- textlint-enable terminology -->

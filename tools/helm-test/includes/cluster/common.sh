@@ -34,3 +34,10 @@ getRandomNumber() {
   fi
   echo "${randomNumber}"
 }
+
+redactSecrets() {
+  local keys='(password|passwd|pwd|token|secret|api[_-]?key|apikey|access[_-]?key|secret[_-]?key|client[_-]?secret|credential|bearer)'
+  sed -E \
+    -e "s/(${keys}[\"']?[[:space:]]*[:=][[:space:]]*)([\"'])[^\"']*\3/\1\3[REDACTED]\3/gI" \
+    -e "s/(${keys}[\"']?[[:space:]]*[:=][[:space:]]*)[^[:space:],;\"']+/\1[REDACTED]/gI"
+}

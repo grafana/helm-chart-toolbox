@@ -1,4 +1,4 @@
-FROM alpine/helm:4.1.4@sha256:4b0bdd2cf18ff6bca12aba0b2c5671384dab5035c19c57f0c58b854a0baf65be
+FROM alpine/helm:4.2.3@sha256:b97ba4f9b27fe7af16ee3d37e6815783c9d4a51289b6240a9024ec471611ae9b
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Schema Generator"

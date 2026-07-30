@@ -2,21 +2,23 @@
 apiVersion: helm-chart-toolbox.grafana.com/v1
 kind: TestPlan
 name: with-baseline
+
 subject:
   path: ../../..
   values:
-    query: up
+    query: alloy_build_info
     env:
       PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
     previousData: |
       metrics:
-        up: 1
+        alloy_build_info: 1
 
 cluster:
   type: kind
 
 dependencies:
   - preset: prometheus
+  - file: alloy.yaml
 
 tests:
   - type: kubernetes-objects-test
@@ -31,3 +33,11 @@ tests:
         - kind: Secret
           name: with-baseline-metrics-snapshot
           namespace: default
+  - type: query-test
+    values:
+      tests:
+        - env:
+            PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+          queries:
+            - query: alloy_build_info{}
+  - type: helm-test

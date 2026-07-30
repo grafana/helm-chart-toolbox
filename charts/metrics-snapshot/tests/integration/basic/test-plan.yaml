@@ -5,12 +5,16 @@ name: basic
 subject:
   path: ../../..
   values:
-    query: up
+    query: alloy_build_info
     env:
       PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
 
 cluster:
   type: kind
+
+dependencies:
+  - preset: prometheus
+  - file: alloy.yaml
 
 tests:
   - type: kubernetes-objects-test
@@ -22,3 +26,11 @@ tests:
         - kind: Secret
           name: basic-metrics-snapshot
           namespace: default
+  - type: query-test
+    values:
+      tests:
+        - env:
+            PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+          queries:
+            - query: alloy_build_info{}
+  - type: helm-test

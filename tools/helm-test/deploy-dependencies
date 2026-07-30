@@ -288,8 +288,9 @@ if [ "${testCount}" -ge 0 ]; then
     if [ "${testType}" == "query-test" ]; then deployTestQueryTest "${i}";
     elif [ "${testType}" == "kubernetes-objects-test" ]; then deployTestKubernetesObjectsTest "${i}";
     elif [ "${testType}" == "metrics-snapshot" ]; then deployTestMetricsSnapshot "${i}";
+    elif [ "${testType}" == "helm-test" ]; then : ;
     else
-      echo "Unknown test type: ${testType}."
+      echo "Unknown test type: ${testType}"
       exit 1
     fi
   done

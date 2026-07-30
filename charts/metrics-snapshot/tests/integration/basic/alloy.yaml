@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alloy
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: grafana
+  namespace: alloy
+spec:
+  interval: 1m
+  url: https://grafana.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-app
+  namespace: alloy
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: alloy
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: alloy
+      interval: 1m
+  values:
+    controller:
+      type: deployment
+      replicas: 1
+    alloy:
+      configMap:
+        content: |-
+          prometheus.scrape "blackbox_scraper" {
+            targets = [{"__address__" = "localhost:12345"}]
+            forward_to = [prometheus.remote_write.prom.receiver]
+          }
+
+          prometheus.remote_write "prom" {
+            endpoint {
+              url = "http://prometheus-server.prometheus.svc:9090/api/v1/write"
+            }
+          }

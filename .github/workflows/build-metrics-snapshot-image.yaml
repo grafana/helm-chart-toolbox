@@ -4,6 +4,8 @@ name: Build and Push Metrics Snapshot image
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
+  pull_request:
+    paths: [charts/metrics-snapshot/**]
 
 permissions:
   packages: write

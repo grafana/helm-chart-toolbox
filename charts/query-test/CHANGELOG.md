@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.6
+
+* Update Profile CLI to 2.2.0 (@petewall)
+* Update Ubuntu base image (@petewall)
+
 ## 0.3.5
 
 * Split the container version into its own version.

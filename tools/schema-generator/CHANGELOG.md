@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5
+
+* Update alpine Helm base image to 4.1.4. (@petewall)
+
 ## 0.2.4
 
 * Update alpine Helm base image to 4.1.3. (@petewall)

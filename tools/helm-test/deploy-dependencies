@@ -246,6 +246,40 @@ if [ "${dependencyCount}" -ge 0 ]; then
   done
 fi
 
+deployTestMetricsSnapshot() {
+  echo "#### Deploying Test: Metrics Snapshot"
+  local manifestFile="${scriptDir}/manifests/tests/helmrelease-metrics-snapshot.yaml"
+  kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
+
+  values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
+
+  # If a baseline data file is configured and present next to the test plan, inject
+  # its contents so the chart runs a comparison. If it is missing (e.g. the first
+  # run), the chart only generates a snapshot to seed the baseline.
+  dataFile="$(yq eval ".tests[${1}].dataFile // \"\"" "${testPlan}")"
+  if [ -z "${dataFile}" ]; then
+    echo "A metrics-snapshot test requires a 'dataFile' to be set in the test plan."
+    exit 1
+  fi
+  dataFilePath="${testDir}/${dataFile}"
+  if [ -f "${dataFilePath}" ]; then
+    dataFilePath="$(realpath "${dataFilePath}")"
+    echo "#### Using baseline data file: ${dataFilePath}"
+    values="$(DATA_FILE="${dataFilePath}" yq eval '.spec.values.previousData = load_str(strenv(DATA_FILE))' <(echo "${values}"))"
+  else
+    echo "#### No baseline data file found at ${dataFilePath}; a new snapshot will be generated"
+  fi
+
+  testDependencies='{"spec": {"dependsOn": []}}'
+  helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"
+  if [ "${helmReleaseCount}" -gt 0 ]; then
+    testDependencies=$(kubectl get helmreleases --all-namespaces --no-headers --field-selector metadata.namespace!=toolbox | sed -e "s/\([-a-z0-9]*\)[[:space:]]*\([-a-z0-9]*\).*/- name: \2\n  namespace: \1/g" | yq '{"spec": {"dependsOn": . // []}}')
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1) * select(fi == 2)' "${manifestFile}" <(echo "${values}") <(echo "${testDependencies}"))
+  else
+    kubectl apply -f <(yq eval-all 'select(fi == 0) * select(fi == 1)' "${manifestFile}" <(echo "${values}"))
+  fi
+}
+
 echo; echo "### Deploying test packages"
 testCount=$(yq eval '.tests | length - 1' "${testPlan}")
 if [ "${testCount}" -ge 0 ]; then
@@ -253,6 +287,7 @@ if [ "${testCount}" -ge 0 ]; then
     testType=$(yq eval ".tests[${i}].type" "${testPlan}")
     if [ "${testType}" == "query-test" ]; then deployTestQueryTest "${i}";
     elif [ "${testType}" == "kubernetes-objects-test" ]; then deployTestKubernetesObjectsTest "${i}";
+    elif [ "${testType}" == "metrics-snapshot" ]; then deployTestMetricsSnapshot "${i}";
     else
       echo "Unknown test type: ${testType}."
       exit 1

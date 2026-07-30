@@ -1,0 +1,24 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: basic
+subject:
+  path: ../../..
+  values:
+    query: up
+    env:
+      PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+
+cluster:
+  type: kind
+
+tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: ConfigMap
+          name: basic-metrics-snapshot
+          namespace: default
+        - kind: Secret
+          name: basic-metrics-snapshot
+          namespace: default

@@ -1,0 +1,9 @@
+{{- /* The generate pod always runs first (weight 0). It prints a fresh snapshot
+       that can be saved as the baseline file. */ -}}
+{{ include "helm-chart-toolbox.metrics-snapshot.testPod" (dict "root" $ "mode" "generate" "weight" "0" "withBaseline" false) }}
+{{- /* The compare pod only runs when a baseline has been provided (weight 1, so
+       it runs after generate). It diffs the current metrics against the baseline. */ -}}
+{{- if .Values.previousData }}
+---
+{{ include "helm-chart-toolbox.metrics-snapshot.testPod" (dict "root" $ "mode" "compare" "weight" "1" "withBaseline" true) }}
+{{- end }}

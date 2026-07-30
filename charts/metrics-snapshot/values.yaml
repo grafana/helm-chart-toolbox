@@ -1,0 +1,109 @@
+---
+# -- Name override
+# @section -- General settings
+nameOverride: ""
+
+# -- Full name override
+# @section -- General settings
+fullnameOverride: ""
+
+# -- The PromQL query to run. Its result set is grouped by metric name to produce
+# the snapshot. Environment variables in the query are substituted at runtime.
+# @section -- Snapshot settings
+query: ""
+
+# -- The label used as the metric name when grouping the query results.
+# @section -- Snapshot settings
+nameLabel: __name__
+
+# -- The percentage change in a metric's series count (or the total series count)
+# above which the difference is reported.
+# @section -- Snapshot settings
+reportThreshold: 1
+
+# -- The percentage change in a metric's series count (or the total series count)
+# above which the comparison fails the test.
+# @section -- Snapshot settings
+failThreshold: 20
+
+# -- Fail the comparison when metrics appear that were not in the baseline.
+# @section -- Snapshot settings
+failOnNewMetrics: true
+
+# -- Fail the comparison when metrics in the baseline are no longer present.
+# @section -- Snapshot settings
+failOnMissingMetrics: true
+
+# -- The baseline snapshot to compare against, as a YAML string. This is normally
+# injected by the helm-test tool from the `dataFile` next to the test plan. When
+# empty, only the generate step runs (which prints a snapshot to seed the baseline).
+# @section -- Snapshot settings
+previousData: ""
+
+# -- Environment variables used to connect to Prometheus. Stored in a Secret.
+# @section -- Environment Variables
+env: {}
+
+# -- Add additional environment variables from configmaps or secrets.
+# @section -- Environment Variables
+envFrom: []
+
+# -- Initial delay, in seconds, before starting the first test run.
+# @section -- Test settings
+initialDelay: 0
+
+# -- Number of times to retry the test on a transient (query) failure.
+# @section -- Test settings
+attempts: 10
+
+# -- Delay, in seconds, between test runs.
+# @section -- Test settings
+delay: 30
+
+pod:
+  # -- nodeSelector to apply to the test runner pods.
+  # @section -- Job settings
+  nodeSelector:
+    kubernetes.io/os: linux
+
+  # -- Extra annotations to add to the test runner pods.
+  # @section -- Job settings
+  extraAnnotations: {}
+
+  # -- Extra labels to add to the test runner pods.
+  # @section -- Job settings
+  extraLabels: {}
+
+  # -- Tolerations to apply to the test runner pods.
+  # @section -- Job settings
+  tolerations: []
+
+  # -- Service Account to use for the test runner pods.
+  # @section -- Job settings
+  serviceAccount:
+    name: ""
+
+image:
+  # -- Test pod image registry.
+  # @section -- Image settings
+  registry: ghcr.io
+  # -- Test pod image repository.
+  # @section -- Image settings
+  repository: grafana/helm-chart-toolbox-metrics-snapshot
+  # -- Test pod image tag. Default is the chart version.
+  # @section -- Image settings
+  tag: ""
+  # -- Optional set of image pull secrets.
+  # @section -- Image settings
+  pullSecrets: []
+
+## Global properties for overriding the image registry and pull secrets.
+global:
+  image:
+    # -- Global image registry to use if it needs to be overridden for some specific use cases (e.g local registries, custom images, ...)
+    # @section -- Image Registry
+    registry: ""
+
+    # -- Optional set of global image pull secrets.
+    # @section -- Image Registry
+    pullSecrets: []

@@ -47,7 +47,8 @@
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test) |
+| tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test), [kubernetes-objects-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/kubernetes-objects-test), and [metrics-snapshot](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/metrics-snapshot) |
 | tests[].type | string | `""` | The type of the test to run. |
 | tests[].args | list | `[]` | Additional arguments to pass to the `helm test` command for this test, for example `["--timeout", "10m"]`. |
+| tests[].dataFile | string | `""` | Path (relative to the test plan) to a data file for the test. Used by `metrics-snapshot` as the baseline snapshot; when the file exists it is injected into the chart's `previousData` value. |
 <!-- textlint-enable terminology -->

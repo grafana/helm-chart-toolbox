@@ -1,0 +1,33 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: with-baseline
+subject:
+  path: ../../..
+  values:
+    query: up
+    env:
+      PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+    previousData: |
+      metrics:
+        up: 1
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: prometheus
+
+tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: ConfigMap
+          name: with-baseline-metrics-snapshot
+          namespace: default
+        - kind: ConfigMap
+          name: with-baseline-metrics-snapshot-baseline
+          namespace: default
+        - kind: Secret
+          name: with-baseline-metrics-snapshot
+          namespace: default

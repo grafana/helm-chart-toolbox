@@ -1,0 +1,10 @@
+{{- if .Values.previousData }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" . }}-baseline
+  namespace: {{ .Release.Namespace }}
+data:
+  baseline.yaml: |-
+{{ .Values.previousData | indent 4 }}
+{{- end }}

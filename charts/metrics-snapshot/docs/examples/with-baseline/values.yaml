@@ -1,3 +1,4 @@
+---
 query: '{__name__=~".+", job="my-app"}'
 reportThreshold: 1
 failThreshold: 20

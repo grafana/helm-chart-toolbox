@@ -6,6 +6,7 @@ createEKSCluster() {
   clusterName=$(getClusterName "${testPlan}")
 
   getClusterCommand=(eksctl get cluster --name "${clusterName}")
+  getClusterConfigCommand=(eksctl utils write-kubeconfig --cluster "${clusterName}")
   createClusterCommand=(eksctl create cluster --config-file)
 
   clusterConfig=$(yq eval '.cluster.config // ""' "${testPlan}")
@@ -26,6 +27,8 @@ createEKSCluster() {
   if ! "${getClusterCommand[@]}" 2>/dev/null ; then
     echo "${createClusterCommand[@]}" <(yq eval ".metadata.name=\"${clusterName}\"" "${clusterConfigFile}")
     "${createClusterCommand[@]}" <(yq eval ".metadata.name=\"${clusterName}\"" "${clusterConfigFile}")
+  else
+    "${getClusterConfigCommand[@]}"
   fi
 }
 

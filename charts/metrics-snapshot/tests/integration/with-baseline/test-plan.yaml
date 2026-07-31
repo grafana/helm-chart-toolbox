@@ -1,0 +1,70 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: with-baseline
+
+subject:
+  path: ../../..
+  values:
+    query: '{instance="localhost:12345", __name__=~"alloy.*"}'
+    env:
+      PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+    previousData: |
+      metrics:
+        alloy_build_info: 1
+        alloy_component_controller_evaluating: 2
+        alloy_component_controller_running_components: 1
+        alloy_component_dependencies_wait_seconds_bucket: 26
+        alloy_component_dependencies_wait_seconds_count: 2
+        alloy_component_dependencies_wait_seconds_sum: 2
+        alloy_component_evaluation_queue_size: 2
+        alloy_component_evaluation_seconds_bucket: 26
+        alloy_component_evaluation_seconds_count: 2
+        alloy_component_evaluation_seconds_sum: 2
+        alloy_component_graph_connection: 1
+        alloy_config_hash: 1
+        alloy_config_last_load_success_timestamp_seconds: 1
+        alloy_config_last_load_successful: 1
+        alloy_config_load_failures_total: 1
+        alloy_fanout_mapping_store_mappings_total: 1
+        alloy_fanout_mapping_store_refs_cleaned_total: 1
+        alloy_fanout_mapping_store_tracked_refs_total: 1
+        alloy_fanout_mapping_store_unique_refs_created_total: 1
+        alloy_labelstore_global_ids_count: 1
+        alloy_labelstore_last_stale_check_timestamp: 1
+        alloy_labelstore_remote_store_ids_count: 1
+        alloy_resources_machine_rx_bytes_total: 1
+        alloy_resources_machine_tx_bytes_total: 1
+        alloy_resources_process_cpu_seconds_total: 1
+        alloy_resources_process_resident_memory_bytes: 1
+        alloy_resources_process_start_time_seconds: 1
+        alloy_resources_process_virtual_memory_bytes: 1
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: prometheus
+  - file: alloy.yaml
+
+tests:
+  - type: kubernetes-objects-test
+    values:
+      checks:
+        - kind: ConfigMap
+          name: with-baseline-metrics-snapshot
+          namespace: default
+        - kind: ConfigMap
+          name: with-baseline-metrics-snapshot-baseline
+          namespace: default
+        - kind: Secret
+          name: with-baseline-metrics-snapshot
+          namespace: default
+  - type: query-test
+    values:
+      tests:
+        - env:
+            PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+          queries:
+            - query: alloy_build_info{}
+  - type: helm-test

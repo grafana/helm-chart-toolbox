@@ -1,0 +1,165 @@
+---
+# Source: metrics-snapshot/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metrics-snapshot
+  namespace: default
+stringData:
+  PROMETHEUS_URL: "http://prometheus-server.prometheus.svc:9090/api/v1/query"
+
+---
+# Source: metrics-snapshot/templates/configmap-baseline.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metrics-snapshot-baseline
+  namespace: default
+data:
+  baseline.yaml: |-
+    query: '{__name__=~".+", job="my-app"}'
+    totalMetrics: 3
+    totalSeries: 46
+    metrics:
+      go_info: 1
+      http_requests_total: 42
+      up: 3
+    
+
+---
+# Source: metrics-snapshot/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metrics-snapshot
+  namespace: default
+data:
+  config.json: |-
+    {
+      "query": "{__name__=~\".+\", job=\"my-app\"}",
+      "reportThreshold": 1,
+      "failThreshold": 20,
+      "failOnNewMetrics": true,
+      "failOnMissingMetrics": true
+    }
+---
+# Source: metrics-snapshot/templates/tests/compare.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-snapshot-compare
+  namespace: default
+  labels:
+    helm.sh/chart: metrics-snapshot-0.1.0
+    app.kubernetes.io/name: metrics-snapshot
+    app.kubernetes.io/instance: metrics-snapshot
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "1"
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  restartPolicy: Never
+  nodeSelector:
+        kubernetes.io/os: linux
+  containers:
+    - name: compare
+      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:0.1.0"
+      command:
+        - bash
+        - -c
+        - |
+          for i in $(seq 1 10); do
+            echo "Running compare... ($i/10)"
+            /usr/bin/compare.sh /etc/config/config.json /etc/baseline/baseline.yaml
+            code=$?
+            if [ ${code} -eq 0 ]; then exit 0; fi
+            if [ ${code} -ne 3 ]; then exit ${code}; fi
+            sleep 30
+          done
+          exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      envFrom:
+        - secretRef:
+            name: metrics-snapshot
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+        - name: baseline
+          mountPath: /etc/baseline
+  volumes:
+    - name: config
+      configMap:
+        name: metrics-snapshot
+    - name: baseline
+      configMap:
+        name: metrics-snapshot-baseline
+
+---
+# Source: metrics-snapshot/templates/tests/generate.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-snapshot-generate
+  namespace: default
+  labels:
+    helm.sh/chart: metrics-snapshot-0.1.0
+    app.kubernetes.io/name: metrics-snapshot
+    app.kubernetes.io/instance: metrics-snapshot
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  restartPolicy: Never
+  nodeSelector:
+        kubernetes.io/os: linux
+  containers:
+    - name: generate
+      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:0.1.0"
+      command:
+        - bash
+        - -c
+        - |
+          for i in $(seq 1 10); do
+            echo "Running generate... ($i/10)"
+            /usr/bin/generate.sh /etc/config/config.json
+            code=$?
+            if [ ${code} -eq 0 ]; then exit 0; fi
+            if [ ${code} -ne 3 ]; then exit ${code}; fi
+            sleep 30
+          done
+          exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      envFrom:
+        - secretRef:
+            name: metrics-snapshot
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+  volumes:
+    - name: config
+      configMap:
+        name: metrics-snapshot
+

@@ -1,0 +1,103 @@
+# yamllint disable rule:document-start rule:line-length rule:trailing-spaces
+suite: Metrics Snapshot
+templates:
+  - configmap.yaml
+  - configmap-baseline.yaml
+  - secret.yaml
+  - tests/generate.yaml
+  - tests/compare.yaml
+tests:
+  - it: creates the config, a secret, and a generate pod, but no compare pod, when no baseline is provided
+    set:
+      query: up
+      reportThreshold: 1
+      failThreshold: 20
+      env:
+        PROMETHEUS_URL: http://prometheus:9090/api/v1/query
+        PROMETHEUS_USER: user
+        PROMETHEUS_PASS: pass
+    asserts:
+      - template: configmap.yaml
+        isKind:
+          of: ConfigMap
+      - template: configmap.yaml
+        matchRegex:
+          path: data["config.json"]
+          pattern: '"query": "up"'
+      - template: secret.yaml
+        equal:
+          path: stringData["PROMETHEUS_URL"]
+          value: http://prometheus:9090/api/v1/query
+      - template: tests/generate.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/generate.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-metrics-snapshot-generate
+      - template: tests/generate.yaml
+        equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "0"
+      - template: tests/generate.yaml
+        equal:
+          path: spec.containers[0].command[2]
+          value: |
+            for i in $(seq 1 10); do
+              echo "Running generate... ($i/10)"
+              /usr/bin/generate.sh /etc/config/config.json
+              code=$?
+              if [ ${code} -eq 0 ]; then exit 0; fi
+              if [ ${code} -ne 3 ]; then exit ${code}; fi
+              sleep 30
+            done
+            exit 1
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 0
+      - template: configmap-baseline.yaml
+        hasDocuments:
+          count: 0
+
+  - it: adds a baseline configmap and a compare pod when previousData is provided
+    set:
+      query: up
+      env:
+        PROMETHEUS_URL: http://prometheus:9090/api/v1/query
+      previousData: |
+        metrics:
+          up: 3
+    asserts:
+      - template: configmap-baseline.yaml
+        isKind:
+          of: ConfigMap
+      - template: configmap-baseline.yaml
+        matchRegex:
+          path: data["baseline.yaml"]
+          pattern: 'up: 3'
+      - template: tests/generate.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/compare.yaml
+        equal:
+          path: metadata.name
+          value: RELEASE-NAME-metrics-snapshot-compare
+      - template: tests/compare.yaml
+        equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "1"
+      - template: tests/compare.yaml
+        equal:
+          path: spec.volumes[1].configMap.name
+          value: RELEASE-NAME-metrics-snapshot-baseline
+
+  - it: does not create a secret when no env is provided
+    set:
+      query: up
+    asserts:
+      - template: secret.yaml
+        hasDocuments:
+          count: 0

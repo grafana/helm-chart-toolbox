@@ -47,6 +47,15 @@ if [ "${testCount}" -ge 0 ]; then
     done < <(yq eval ".tests[${i}].args[]" "${testPlan}")
 
     echo "#### Running test: ${testType}"
-    helm test "${testType}" --namespace toolbox --logs "${testArgs[@]}"
+    if [ "${testType}" == "helm-test" ]; then
+      releaseName=$(yq eval ".tests[${i}].name // \"\"" "${testPlan}")
+      if [ -z "${releaseName}" ]; then
+        releaseName=$(yq eval '.subject.releaseName // .name' "${testPlan}")
+      fi
+      namespace=$(yq eval ".tests[${i}].namespace // \"default\"" "${testPlan}")
+      helm test "${releaseName}" --namespace "${namespace}" --logs "${testArgs[@]}"
+    else
+      helm test "${testType}" --namespace toolbox --logs "${testArgs[@]}"
+    fi
   done
 fi

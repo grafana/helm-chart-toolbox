@@ -1,0 +1,14 @@
+---
+query: '{__name__=~".+", job="my-app"}'
+reportThreshold: 1
+failThreshold: 20
+env:
+  PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+previousData: |
+  query: '{__name__=~".+", job="my-app"}'
+  totalMetrics: 3
+  totalSeries: 46
+  metrics:
+    go_info: 1
+    http_requests_total: 42
+    up: 3

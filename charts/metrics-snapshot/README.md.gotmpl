@@ -1,0 +1,66 @@
+<!--
+(NOTE: Do not edit README.md directly. It is a generated file!)
+(      To make changes, please modify README.md.gotmpl and run `helm-docs`)
+-->
+
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+{{ template "chart.badgesSection" . }}
+{{ template "chart.description" . }}
+{{ template "chart.homepageLine" . }}
+
+## How it works
+
+This chart runs a PromQL query against Prometheus and records the set of metric names it
+returns, along with the number of series for each one (its cardinality). The result is a
+snapshot that can be saved to a file and used as a baseline for future runs.
+
+Two steps run as Helm test hooks:
+
+1. **generate** (always runs first): runs the query and prints a YAML snapshot of the
+   metric names and their series counts. Save this output as your baseline file.
+2. **compare** (runs only when a baseline is provided): runs the query again and compares
+   the current metrics against the baseline, reporting metrics that were added or removed,
+   and metrics whose series count changed by more than the reporting threshold. The test
+   fails when a change exceeds the failing threshold, or (by default) when metrics are
+   added or removed.
+
+When used with the [helm-test](https://github.com/grafana/helm-chart-toolbox/tree/main/tools/helm-test)
+tool, set a `dataFile` on the test. If the file exists next to the `test-plan.yaml`, it is
+injected as the baseline; if it does not exist yet (a first run), only the generate step
+runs so you can capture the output and commit it as the baseline.
+
+## Usage
+
+```yaml
+query: '{__name__=~".+", job="my-app"}'
+reportThreshold: 1
+failThreshold: 20
+env:
+  PROMETHEUS_URL: https://prometheus-server.prometheus.svc:9090/api/v1/query
+  PROMETHEUS_USER: promuser
+  PROMETHEUS_PASS: prometheuspassword
+```
+
+In a test plan:
+
+```yaml
+tests:
+  - type: metrics-snapshot
+    dataFile: metrics-snapshot.yaml
+    values:
+      query: '{__name__=~".+", job="my-app"}'
+      env:
+        PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+```
+
+<!-- textlint-disable terminology -->
+{{ template "chart.maintainersSection" . }}
+<!-- textlint-enable terminology -->
+<!-- markdownlint-disable no-bare-urls -->
+<!-- markdownlint-disable list-marker-space -->
+{{ template "chart.sourcesSection" . }}
+<!-- markdownlint-enable list-marker-space -->
+<!-- markdownlint-enable no-bare-urls -->
+{{ template "chart.requirementsSection" . }}
+{{ template "chart.valuesSection" . }}

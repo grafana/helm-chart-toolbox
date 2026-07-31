@@ -1,0 +1,92 @@
+---
+name: Test Metrics Snapshot
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches: [main]
+    paths: [charts/metrics-snapshot/**]
+  pull_request:
+    paths: [charts/metrics-snapshot/**]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: 'false'
+
+      - name: Set up Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310  # v5.0.1
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f  # v2.8.0
+
+      - name: Run tests
+        working-directory: charts/metrics-snapshot
+        run: make test
+
+  list-integration-tests:
+    name: List tests
+    runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.list_tests.outputs.tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: 'false'
+
+      - name: List tests
+        id: list_tests
+        working-directory: charts/metrics-snapshot/tests/integration
+        run: |
+          tests=$(find . -name test-plan.yaml -exec dirname {} \;)
+          echo "Tests: ${tests}"
+          echo "tests=$(echo "${tests}" | jq --raw-input --slurp --compact-output 'split("\n") | map(select(. != ""))')" >> "${GITHUB_OUTPUT}"
+
+  run-integration-tests:
+    name: Integration Test
+    needs: list-integration-tests
+    runs-on: ubuntu-latest
+    if: needs.list-integration-tests.outputs.tests != '[]'
+    strategy:
+      matrix:
+        test: ${{ fromJson(needs.list-integration-tests.outputs.tests) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: 'false'
+          path: source
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: 'false'
+          repository: grafana/helm-chart-toolbox
+          path: helm-chart-toolbox
+
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@16602fa989daa99762f1c6d1186ae2ad1c735815  # v2.9.3
+
+      - name: Install Kind CLI
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc  # v1.14.0
+        with:
+          install_only: true
+
+      - name: Install Minikube CLI
+        uses: medyagh/setup-minikube@e9e035a86bbc3caea26a450bd4dbf9d0c453682e  # v0.0.21
+        with:
+          start: false
+
+      - name: Run test
+        run: helm-chart-toolbox/tools/helm-test/helm-test "${TEST_DIRECTORY}"
+        env:
+          TEST_DIRECTORY: "source/charts/metrics-snapshot/tests/integration/${{ matrix.test }}"
+          DELETE_CLUSTER: true

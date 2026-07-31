@@ -4,9 +4,10 @@ templates:
   - configmap.yaml
   - configmap-baseline.yaml
   - secret.yaml
-  - tests/test-pods.yaml
+  - tests/generate.yaml
+  - tests/compare.yaml
 tests:
-  - it: creates the config, a secret, and only a generate pod when no baseline is provided
+  - it: creates the config, a secret, and a generate pod, but no compare pod, when no baseline is provided
     set:
       query: up
       reportThreshold: 1
@@ -24,23 +25,36 @@ tests:
           path: data["config.json"]
           pattern: '"query": "up"'
       - template: secret.yaml
-        isKind:
-          of: Secret
-      - template: secret.yaml
         equal:
           path: stringData["PROMETHEUS_URL"]
           value: http://prometheus:9090/api/v1/query
-      - template: tests/test-pods.yaml
+      - template: tests/generate.yaml
         hasDocuments:
           count: 1
-      - template: tests/test-pods.yaml
+      - template: tests/generate.yaml
         equal:
           path: metadata.name
           value: RELEASE-NAME-metrics-snapshot-generate
-      - template: tests/test-pods.yaml
+      - template: tests/generate.yaml
         equal:
           path: metadata.annotations["helm.sh/hook-weight"]
           value: "0"
+      - template: tests/generate.yaml
+        equal:
+          path: spec.containers[0].command[2]
+          value: |
+            for i in $(seq 1 10); do
+              echo "Running generate... ($i/10)"
+              /usr/bin/generate.sh /etc/config/config.json
+              code=$?
+              if [ ${code} -eq 0 ]; then exit 0; fi
+              if [ ${code} -ne 3 ]; then exit ${code}; fi
+              sleep 30
+            done
+            exit 1
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 0
       - template: configmap-baseline.yaml
         hasDocuments:
           count: 0
@@ -61,24 +75,24 @@ tests:
         matchRegex:
           path: data["baseline.yaml"]
           pattern: 'up: 3'
-      - template: tests/test-pods.yaml
+      - template: tests/generate.yaml
         hasDocuments:
-          count: 2
-      - template: tests/test-pods.yaml
-        documentIndex: 0
-        equal:
-          path: metadata.name
-          value: RELEASE-NAME-metrics-snapshot-generate
-      - template: tests/test-pods.yaml
-        documentIndex: 1
+          count: 1
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/compare.yaml
         equal:
           path: metadata.name
           value: RELEASE-NAME-metrics-snapshot-compare
-      - template: tests/test-pods.yaml
-        documentIndex: 1
+      - template: tests/compare.yaml
         equal:
           path: metadata.annotations["helm.sh/hook-weight"]
           value: "1"
+      - template: tests/compare.yaml
+        equal:
+          path: spec.volumes[1].configMap.name
+          value: RELEASE-NAME-metrics-snapshot-baseline
 
   - it: does not create a secret when no env is provided
     set:

@@ -62,9 +62,6 @@
         "initialDelay": {
             "type": "integer"
         },
-        "nameLabel": {
-            "type": "string"
-        },
         "nameOverride": {
             "type": "string"
         },

@@ -9,35 +9,31 @@ fullnameOverride: ""
 
 # -- The PromQL query to run. Its result set is grouped by metric name to produce
 # the snapshot. Environment variables in the query are substituted at runtime.
-# @section -- Snapshot settings
+# @section -- Query settings
 query: ""
-
-# -- The label used as the metric name when grouping the query results.
-# @section -- Snapshot settings
-nameLabel: __name__
 
 # -- The percentage change in a metric's series count (or the total series count)
 # above which the difference is reported.
-# @section -- Snapshot settings
+# @section -- Comparison settings
 reportThreshold: 1
 
 # -- The percentage change in a metric's series count (or the total series count)
 # above which the comparison fails the test.
-# @section -- Snapshot settings
+# @section -- Comparison settings
 failThreshold: 20
 
 # -- Fail the comparison when metrics appear that were not in the baseline.
-# @section -- Snapshot settings
+# @section -- Comparison settings
 failOnNewMetrics: true
 
 # -- Fail the comparison when metrics in the baseline are no longer present.
-# @section -- Snapshot settings
+# @section -- Comparison settings
 failOnMissingMetrics: true
 
 # -- The baseline snapshot to compare against, as a YAML string. This is normally
 # injected by the helm-test tool from the `dataFile` next to the test plan. When
 # empty, only the generate step runs (which prints a snapshot to seed the baseline).
-# @section -- Snapshot settings
+# @section -- Comparison settings
 previousData: ""
 
 # -- Environment variables used to connect to Prometheus. Stored in a Secret.

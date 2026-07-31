@@ -5,7 +5,7 @@
 
 # metrics-snapshot
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.0](https://img.shields.io/badge/AppVersion-1.0.0-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 A Helm Chart Toolbox test that snapshots the metrics returned by a PromQL query and compares them against a saved baseline.
 
 ## How it works
@@ -85,16 +85,14 @@ tests:
 | env | object | `{}` | Environment variables used to connect to Prometheus. Stored in a Secret. |
 | envFrom | list | `[]` | Add additional environment variables from configmaps or secrets. |
 
-### Snapshot settings
+### Comparison settings
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | failOnMissingMetrics | bool | `true` | Fail the comparison when metrics in the baseline are no longer present. |
 | failOnNewMetrics | bool | `true` | Fail the comparison when metrics appear that were not in the baseline. |
 | failThreshold | int | `20` | The percentage change in a metric's series count (or the total series count) above which the comparison fails the test. |
-| nameLabel | string | `"__name__"` | The label used as the metric name when grouping the query results. |
 | previousData | string | `""` | The baseline snapshot to compare against, as a YAML string. This is normally injected by the helm-test tool from the `dataFile` next to the test plan. When empty, only the generate step runs (which prints a snapshot to seed the baseline). |
-| query | string | `""` | The PromQL query to run. Its result set is grouped by metric name to produce the snapshot. Environment variables in the query are substituted at runtime. |
 | reportThreshold | int | `1` | The percentage change in a metric's series count (or the total series count) above which the difference is reported. |
 
 ### General settings
@@ -129,3 +127,9 @@ tests:
 | pod.nodeSelector | object | `{"kubernetes.io/os":"linux"}` | nodeSelector to apply to the test runner pods. |
 | pod.serviceAccount | object | `{"name":""}` | Service Account to use for the test runner pods. |
 | pod.tolerations | list | `[]` | Tolerations to apply to the test runner pods. |
+
+### Query settings
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| query | string | `""` | The PromQL query to run. Its result set is grouped by metric name to produce the snapshot. Environment variables in the query are substituted at runtime. |

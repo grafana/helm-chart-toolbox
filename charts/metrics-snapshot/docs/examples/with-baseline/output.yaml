@@ -37,71 +37,13 @@ data:
   config.json: |-
     {
       "query": "{__name__=~\".+\", job=\"my-app\"}",
-      "nameLabel": "__name__",
       "reportThreshold": 1,
       "failThreshold": 20,
       "failOnNewMetrics": true,
       "failOnMissingMetrics": true
     }
 ---
-# Source: metrics-snapshot/templates/tests/test-pods.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: metrics-snapshot-generate
-  namespace: default
-  labels:
-    helm.sh/chart: metrics-snapshot-0.1.0
-    app.kubernetes.io/name: metrics-snapshot
-    app.kubernetes.io/instance: metrics-snapshot
-    app.kubernetes.io/version: "1.0.0"
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook-weight": "0"
-spec:
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-  restartPolicy: Never
-  nodeSelector:
-        kubernetes.io/os: linux
-  containers:
-    - name: metrics-snapshot
-      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:1.0.0"
-      command:
-        - bash
-        - -c
-        - |
-          for i in $(seq 1 10); do
-            echo "Running generate test... ($i/10)"
-            /usr/bin/metrics-snapshot.sh generate /etc/config/config.json
-            code=$?
-            if [ ${code} -eq 0 ]; then exit 0; fi
-            if [ ${code} -eq 1 ]; then exit 1; fi
-            sleep 30
-          done
-          exit 1
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop: ["ALL"]
-        readOnlyRootFilesystem: true
-        seccompProfile:
-          type: RuntimeDefault
-      envFrom:
-        - secretRef:
-            name: metrics-snapshot
-      volumeMounts:
-        - name: config
-          mountPath: /etc/config
-  volumes:
-    - name: config
-      configMap:
-        name: metrics-snapshot
----
-# Source: metrics-snapshot/templates/tests/test-pods.yaml
+# Source: metrics-snapshot/templates/tests/compare.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -111,7 +53,7 @@ metadata:
     helm.sh/chart: metrics-snapshot-0.1.0
     app.kubernetes.io/name: metrics-snapshot
     app.kubernetes.io/instance: metrics-snapshot
-    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/version: "0.1.0"
     app.kubernetes.io/managed-by: Helm
   annotations:
     "helm.sh/hook": test
@@ -125,18 +67,18 @@ spec:
   nodeSelector:
         kubernetes.io/os: linux
   containers:
-    - name: metrics-snapshot
-      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:1.0.0"
+    - name: compare
+      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:0.1.0"
       command:
         - bash
         - -c
         - |
           for i in $(seq 1 10); do
-            echo "Running compare test... ($i/10)"
-            /usr/bin/metrics-snapshot.sh compare /etc/config/config.json /etc/baseline/baseline.yaml
+            echo "Running compare... ($i/10)"
+            /usr/bin/compare.sh /etc/config/config.json /etc/baseline/baseline.yaml
             code=$?
             if [ ${code} -eq 0 ]; then exit 0; fi
-            if [ ${code} -eq 1 ]; then exit 1; fi
+            if [ ${code} -ne 3 ]; then exit ${code}; fi
             sleep 30
           done
           exit 1
@@ -162,4 +104,62 @@ spec:
     - name: baseline
       configMap:
         name: metrics-snapshot-baseline
+
+---
+# Source: metrics-snapshot/templates/tests/generate.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-snapshot-generate
+  namespace: default
+  labels:
+    helm.sh/chart: metrics-snapshot-0.1.0
+    app.kubernetes.io/name: metrics-snapshot
+    app.kubernetes.io/instance: metrics-snapshot
+    app.kubernetes.io/version: "0.1.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  restartPolicy: Never
+  nodeSelector:
+        kubernetes.io/os: linux
+  containers:
+    - name: generate
+      image: "ghcr.io/grafana/helm-chart-toolbox-metrics-snapshot:0.1.0"
+      command:
+        - bash
+        - -c
+        - |
+          for i in $(seq 1 10); do
+            echo "Running generate... ($i/10)"
+            /usr/bin/generate.sh /etc/config/config.json
+            code=$?
+            if [ ${code} -eq 0 ]; then exit 0; fi
+            if [ ${code} -ne 3 ]; then exit ${code}; fi
+            sleep 30
+          done
+          exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      envFrom:
+        - secretRef:
+            name: metrics-snapshot
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+  volumes:
+    - name: config
+      configMap:
+        name: metrics-snapshot
 

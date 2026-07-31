@@ -58,109 +58,26 @@ The fully qualified test pod image reference.
 {{- end }}
 
 {{/*
-Renders a test Pod. Expects a dict with:
-  root         - the root context ($)
-  mode         - "generate" or "compare"
-  weight       - the helm hook weight (controls ordering)
-  withBaseline - whether to mount the baseline snapshot
+The image pull secrets, if any are configured (global takes precedence).
 */}}
-{{- define "helm-chart-toolbox.metrics-snapshot.testPod" -}}
-{{- $ := .root -}}
-apiVersion: v1
-kind: Pod
-metadata:
-  name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" $ }}-{{ .mode }}
-  namespace: {{ $.Release.Namespace }}
-  labels:
-    {{- include "helm-chart-toolbox.metrics-snapshot.labels" $ | nindent 4 }}
-    {{- range $key, $val := $.Values.pod.extraLabels }}
-    {{ $key }}: {{ $val | quote }}
-    {{- end }}
-  annotations:
-    "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": before-hook-creation
-    "helm.sh/hook-weight": {{ .weight | quote }}
-    {{- range $key, $val := $.Values.pod.extraAnnotations }}
-    {{ $key }}: {{ $val | quote }}
-    {{- end }}
-spec:
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-  {{- if $.Values.pod.serviceAccount.name }}
-  serviceAccountName: {{ $.Values.pod.serviceAccount.name }}
-  {{- end }}
-  {{- if or $.Values.global.image.pullSecrets $.Values.image.pullSecrets }}
-  imagePullSecrets:
-    {{- if $.Values.global.image.pullSecrets }}
-    {{- toYaml $.Values.global.image.pullSecrets | nindent 8 }}
-    {{- else }}
-    {{- toYaml $.Values.image.pullSecrets | nindent 8 }}
-    {{- end }}
-  {{- end }}
-  restartPolicy: Never
-  {{- with $.Values.pod.nodeSelector }}
-  nodeSelector:
-    {{- toYaml . | nindent 8 }}
-  {{- end }}
-  {{- with $.Values.pod.tolerations }}
-  tolerations:
-    {{- toYaml . | nindent 8 }}
-  {{- end }}
-  {{- if $.Values.initialDelay }}
-  initContainers:
-    - name: wait
-      image: {{ include "helm-chart-toolbox.metrics-snapshot.image" $ | quote }}
-      command: ["bash", "-c", "sleep {{ $.Values.initialDelay | int }}"]
-  {{- end }}
-  containers:
-    - name: metrics-snapshot
-      image: {{ include "helm-chart-toolbox.metrics-snapshot.image" $ | quote }}
-      command:
-        - bash
-        - -c
-        - |
-          for i in $(seq 1 {{ $.Values.attempts | int }}); do
-            echo "Running {{ .mode }} test... ($i/{{ $.Values.attempts | int }})"
-            /usr/bin/metrics-snapshot.sh {{ .mode }} /etc/config/config.json{{ if .withBaseline }} /etc/baseline/baseline.yaml{{ end }}
-            code=$?
-            if [ ${code} -eq 0 ]; then exit 0; fi
-            if [ ${code} -eq 1 ]; then exit 1; fi
-            sleep {{ $.Values.delay | int }}
-          done
-          exit 1
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop: ["ALL"]
-        readOnlyRootFilesystem: true
-        seccompProfile:
-          type: RuntimeDefault
-      {{- if $.Values.env }}
-      envFrom:
-        - secretRef:
-            name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" $ }}
-        {{- with $.Values.envFrom }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
-      {{- else if $.Values.envFrom }}
-      envFrom:
-        {{- toYaml $.Values.envFrom | nindent 8 }}
-      {{- end }}
-      volumeMounts:
-        - name: config
-          mountPath: /etc/config
-        {{- if .withBaseline }}
-        - name: baseline
-          mountPath: /etc/baseline
-        {{- end }}
-  volumes:
-    - name: config
-      configMap:
-        name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" $ }}
-    {{- if .withBaseline }}
-    - name: baseline
-      configMap:
-        name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" $ }}-baseline
-    {{- end }}
+{{- define "helm-chart-toolbox.metrics-snapshot.imagePullSecrets" -}}
+{{- if .Values.global.image.pullSecrets }}
+{{- toYaml .Values.global.image.pullSecrets }}
+{{- else }}
+{{- toYaml .Values.image.pullSecrets }}
+{{- end }}
+{{- end }}
+
+{{/*
+The envFrom entries for a test pod: the generated Secret (when env is set) plus any
+user-supplied envFrom references.
+*/}}
+{{- define "helm-chart-toolbox.metrics-snapshot.envFrom" -}}
+{{- if .Values.env }}
+- secretRef:
+    name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" . }}
+{{- end }}
+{{- with .Values.envFrom }}
+{{- toYaml . }}
+{{- end }}
 {{- end }}

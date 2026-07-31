@@ -7,7 +7,6 @@ data:
   config.json: |-
     {
       "query": {{ .Values.query | toJson }},
-      "nameLabel": {{ .Values.nameLabel | toJson }},
       "reportThreshold": {{ .Values.reportThreshold }},
       "failThreshold": {{ .Values.failThreshold }},
       "failOnNewMetrics": {{ .Values.failOnNewMetrics }},

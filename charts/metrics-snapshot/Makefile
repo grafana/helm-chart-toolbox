@@ -26,7 +26,7 @@ values.schema.json: values.yaml
 
 # Container image
 build-image: .temp/image-built-$(IMAGE_VERSION)
-.temp/image-built-$(IMAGE_VERSION): container/Dockerfile container/common.sh container/metrics-snapshot.sh
+.temp/image-built-$(IMAGE_VERSION): container/Dockerfile container/common.sh container/generate.sh container/compare.sh
 	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(IMAGE_VERSION) container
 	mkdir -p .temp && touch .temp/image-built-${IMAGE_VERSION}
 

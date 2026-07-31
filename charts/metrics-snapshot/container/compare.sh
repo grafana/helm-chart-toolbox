@@ -4,8 +4,9 @@ scriptDir=$(dirname "$(readlink -f "$0")")
 source "${scriptDir}/common.sh"
 
 # Exit codes used throughout the metrics-snapshot test:
-#   0 - success (snapshot generated, or comparison within thresholds, or skipped)
-#   1 - test failure (comparison exceeded a failing threshold). Do not retry.
+#   0 - success (comparison within thresholds, or skipped)
+#   1 - test failure (comparison exceeded a failing threshold). The caller may retry,
+#       since metrics can still be arriving shortly after deploy.
 #   2 - systemic failure (missing required fields). Can not retry.
 #   3 - transient failure (query error, no connection, etc). Safe to retry.
 

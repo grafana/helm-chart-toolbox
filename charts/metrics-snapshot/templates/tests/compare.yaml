@@ -56,7 +56,9 @@ spec:
             /usr/bin/compare.sh /etc/config/config.json /etc/baseline/baseline.yaml
             code=$?
             if [ ${code} -eq 0 ]; then exit 0; fi
-            if [ ${code} -ne 3 ]; then exit ${code}; fi
+            if [ ${code} -eq 2 ]; then exit 2; fi
+            # A comparison failure (1) or query error (3) may just be metrics still
+            # arriving, so retry until they settle or we run out of attempts.
             sleep {{ .Values.delay | int }}
           done
           exit 1

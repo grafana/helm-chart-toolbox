@@ -5,7 +5,7 @@ name: basic
 subject:
   path: ../../..
   values:
-    query: {instance="localhost:12345"}
+    query: '{instance="localhost:12345"}'
     env:
       PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
 

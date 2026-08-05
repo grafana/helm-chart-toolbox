@@ -78,7 +78,7 @@ user-supplied envFrom references.
     name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" . }}
 {{- end }}
 {{- with .Values.envFrom }}
-{{- toYaml . }}
+{{ toYaml . }}
 {{- end }}
 {{- end }}
 

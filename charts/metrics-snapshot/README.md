@@ -5,7 +5,7 @@
 
 # metrics-snapshot
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 A Helm Chart Toolbox test that snapshots the metrics returned by a PromQL query and compares them against a saved baseline.
 
 ## How it works
@@ -24,10 +24,17 @@ Two steps run as Helm test hooks:
    fails when a change exceeds the failing threshold, or (by default) when metrics are
    added or removed.
 
-When used with the [helm-test](https://github.com/grafana/helm-chart-toolbox/tree/main/tools/helm-test)
-tool, set a `dataFile` on the test. If the file exists next to the `test-plan.yaml`, it is
-injected as the baseline; if it does not exist yet (a first run), only the generate step
-runs so you can capture the output and commit it as the baseline.
+You can provide the baseline in one of two ways:
+
+- Inline, as a YAML string, via `previousData`. This is convenient for small baselines.
+- By reference to an existing ConfigMap, via `previousDataConfigMap`. This is the
+  recommended approach for larger baselines. When used with the
+  [helm-test](https://github.com/grafana/helm-chart-toolbox/tree/main/tools/helm-test)
+  tool, store the baseline in a ConfigMap with a `configmap` dependency and point the
+  chart at it.
+
+If neither is set (for example, on a first run), only the generate step runs so you can
+capture the output and commit it as the baseline.
 
 ## Usage
 
@@ -41,16 +48,24 @@ env:
   PROMETHEUS_PASS: prometheuspassword
 ```
 
-In a test plan:
+In a test plan, store the baseline in a ConfigMap with a `configmap` dependency and
+reference it with `previousDataConfigMap`:
 
 ```yaml
+dependencies:
+  - configmap:
+      name: metrics-snapshot-baseline
+      contentFromFile:
+        baseline.yaml: baseline.yaml
+
 tests:
   - type: metrics-snapshot
-    dataFile: metrics-snapshot.yaml
     values:
       query: '{__name__=~".+", job="my-app"}'
       env:
         PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+      previousDataConfigMap:
+        name: metrics-snapshot-baseline
 ```
 
 <!-- textlint-disable terminology -->
@@ -92,7 +107,10 @@ tests:
 | failOnMissingMetrics | bool | `true` | Fail the comparison when metrics in the baseline are no longer present. |
 | failOnNewMetrics | bool | `true` | Fail the comparison when metrics appear that were not in the baseline. |
 | failThreshold | int | `20` | The percentage change in a metric's series count (or the total series count) above which the comparison fails the test. |
-| previousData | string | `""` | The baseline snapshot to compare against, as a YAML string. This is normally injected by the helm-test tool from the `dataFile` next to the test plan. When empty, only the generate step runs (which prints a snapshot to seed the baseline). |
+| previousData | string | `""` | The baseline snapshot to compare against, as an inline YAML string. Use this for small baselines. For larger baselines, store the snapshot in a ConfigMap (for example with the helm-test `configmap` dependency) and reference it via `previousDataConfigMap` instead. When neither is set, only the generate step runs (which prints a snapshot to seed the baseline). |
+| previousDataConfigMap | object | `{"key":"baseline.yaml","name":""}` | Reference an existing ConfigMap holding the baseline snapshot, instead of providing it inline via `previousData`. When `previousDataConfigMap.name` is set, `previousData` is ignored and the referenced ConfigMap is mounted directly. |
+| previousDataConfigMap.key | string | `"baseline.yaml"` | The key within the ConfigMap that holds the baseline YAML. |
+| previousDataConfigMap.name | string | `""` | The name of an existing ConfigMap that holds the baseline snapshot. |
 | reportThreshold | int | `1` | The percentage change in a metric's series count (or the total series count) above which the difference is reported. |
 
 ### General settings

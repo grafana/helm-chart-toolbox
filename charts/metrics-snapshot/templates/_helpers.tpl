@@ -81,3 +81,39 @@ user-supplied envFrom references.
 {{- toYaml . }}
 {{- end }}
 {{- end }}
+
+{{/*
+Whether a baseline snapshot is configured, either inline via `previousData` or by
+referencing an existing ConfigMap via `previousDataConfigMap.name`. Renders "true" when
+a baseline is available, and an empty string otherwise.
+*/}}
+{{- define "helm-chart-toolbox.metrics-snapshot.hasBaseline" -}}
+{{- if or .Values.previousData .Values.previousDataConfigMap.name -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+The name of the ConfigMap that holds the baseline snapshot. When `previousDataConfigMap.name`
+is set, an existing (externally-managed) ConfigMap is referenced; otherwise the chart creates
+one from the inline `previousData`.
+*/}}
+{{- define "helm-chart-toolbox.metrics-snapshot.baselineConfigMapName" -}}
+{{- if .Values.previousDataConfigMap.name -}}
+{{- .Values.previousDataConfigMap.name -}}
+{{- else -}}
+{{- printf "%s-baseline" (include "helm-chart-toolbox.metrics-snapshot.fullname" .) -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+The key within the baseline ConfigMap that holds the baseline YAML. Defaults to "baseline.yaml",
+which is also the key the chart uses when creating the baseline from inline `previousData`.
+*/}}
+{{- define "helm-chart-toolbox.metrics-snapshot.baselineKey" -}}
+{{- if .Values.previousDataConfigMap.name -}}
+{{- .Values.previousDataConfigMap.key | default "baseline.yaml" -}}
+{{- else -}}
+baseline.yaml
+{{- end -}}
+{{- end }}

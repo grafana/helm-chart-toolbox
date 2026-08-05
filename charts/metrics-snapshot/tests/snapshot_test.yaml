@@ -94,6 +94,47 @@ tests:
           path: spec.volumes[1].configMap.name
           value: RELEASE-NAME-metrics-snapshot-baseline
 
+  - it: references an existing ConfigMap for the baseline when previousDataConfigMap.name is set
+    set:
+      query: up
+      env:
+        PROMETHEUS_URL: http://prometheus:9090/api/v1/query
+      previousDataConfigMap:
+        name: my-baseline
+        key: snapshot.yaml
+    asserts:
+      # The chart must not create its own baseline ConfigMap; the referenced one is used.
+      - template: configmap-baseline.yaml
+        hasDocuments:
+          count: 0
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/compare.yaml
+        equal:
+          path: spec.volumes[1].configMap.name
+          value: my-baseline
+      - template: tests/compare.yaml
+        matchRegex:
+          path: spec.containers[0].command[2]
+          pattern: '/etc/baseline/snapshot.yaml'
+
+  - it: defaults the baseline key to baseline.yaml when previousDataConfigMap.key is omitted
+    set:
+      query: up
+      env:
+        PROMETHEUS_URL: http://prometheus:9090/api/v1/query
+      previousDataConfigMap:
+        name: my-baseline
+    asserts:
+      - template: tests/compare.yaml
+        hasDocuments:
+          count: 1
+      - template: tests/compare.yaml
+        matchRegex:
+          path: spec.containers[0].command[2]
+          pattern: '/etc/baseline/baseline.yaml'
+
   - it: does not create a secret when no env is provided
     set:
       query: up

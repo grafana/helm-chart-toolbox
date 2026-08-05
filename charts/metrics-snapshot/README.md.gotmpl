@@ -25,10 +25,17 @@ Two steps run as Helm test hooks:
    fails when a change exceeds the failing threshold, or (by default) when metrics are
    added or removed.
 
-When used with the [helm-test](https://github.com/grafana/helm-chart-toolbox/tree/main/tools/helm-test)
-tool, set a `dataFile` on the test. If the file exists next to the `test-plan.yaml`, it is
-injected as the baseline; if it does not exist yet (a first run), only the generate step
-runs so you can capture the output and commit it as the baseline.
+You can provide the baseline in one of two ways:
+
+- Inline, as a YAML string, via `previousData`. This is convenient for small baselines.
+- By reference to an existing ConfigMap, via `previousDataConfigMap`. This is the
+  recommended approach for larger baselines. When used with the
+  [helm-test](https://github.com/grafana/helm-chart-toolbox/tree/main/tools/helm-test)
+  tool, store the baseline in a ConfigMap with a `configmap` dependency and point the
+  chart at it.
+
+If neither is set (for example, on a first run), only the generate step runs so you can
+capture the output and commit it as the baseline.
 
 ## Usage
 
@@ -42,16 +49,24 @@ env:
   PROMETHEUS_PASS: prometheuspassword
 ```
 
-In a test plan:
+In a test plan, store the baseline in a ConfigMap with a `configmap` dependency and
+reference it with `previousDataConfigMap`:
 
 ```yaml
+dependencies:
+  - configmap:
+      name: metrics-snapshot-baseline
+      contentFromFile:
+        baseline.yaml: baseline.yaml
+
 tests:
   - type: metrics-snapshot
-    dataFile: metrics-snapshot.yaml
     values:
       query: '{__name__=~".+", job="my-app"}'
       env:
         PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+      previousDataConfigMap:
+        name: metrics-snapshot-baseline
 ```
 
 <!-- textlint-disable terminology -->

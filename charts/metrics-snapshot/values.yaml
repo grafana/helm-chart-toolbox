@@ -30,11 +30,25 @@ failOnNewMetrics: true
 # @section -- Comparison settings
 failOnMissingMetrics: true
 
-# -- The baseline snapshot to compare against, as a YAML string. This is normally
-# injected by the helm-test tool from the `dataFile` next to the test plan. When
-# empty, only the generate step runs (which prints a snapshot to seed the baseline).
+# -- The baseline snapshot to compare against, as an inline YAML string. Use this for
+# small baselines. For larger baselines, store the snapshot in a ConfigMap (for example
+# with the helm-test `configmap` dependency) and reference it via `previousDataConfigMap`
+# instead. When neither is set, only the generate step runs (which prints a snapshot to
+# seed the baseline).
 # @section -- Comparison settings
 previousData: ""
+
+# -- Reference an existing ConfigMap holding the baseline snapshot, instead of providing
+# it inline via `previousData`. When `previousDataConfigMap.name` is set, `previousData`
+# is ignored and the referenced ConfigMap is mounted directly.
+# @section -- Comparison settings
+previousDataConfigMap:
+  # -- The name of an existing ConfigMap that holds the baseline snapshot.
+  # @section -- Comparison settings
+  name: ""
+  # -- The key within the ConfigMap that holds the baseline YAML.
+  # @section -- Comparison settings
+  key: baseline.yaml
 
 # -- Environment variables used to connect to Prometheus. Stored in a Secret.
 # @section -- Environment Variables

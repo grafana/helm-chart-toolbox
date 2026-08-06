@@ -154,6 +154,41 @@ deployTestKubernetesObjectsTest() {
   fi
 }
 
+deployConfigMap() {
+  local name namespace key value filePath
+  name=$(yq eval ".dependencies[${1}].configmap.name" "${testPlan}")
+  namespace=$(yq eval ".dependencies[${1}].configmap.namespace // \"default\"" "${testPlan}")
+  echo "#### Deploying ConfigMap dependency: ${name} (namespace: ${namespace})"
+
+  local args=()
+
+  # Literal content, provided inline via `content`.
+  while IFS= read -r key; do
+    [ -z "${key}" ] && continue
+    value=$(yq eval ".dependencies[${1}].configmap.content.\"${key}\"" "${testPlan}")
+    args+=("--from-literal=${key}=${value}")
+  done < <(yq eval ".dependencies[${1}].configmap.content // {} | keys | .[]" "${testPlan}")
+
+  # Content sourced from files, provided via `contentFromFile`.
+  while IFS= read -r key; do
+    [ -z "${key}" ] && continue
+    filePath=$(yq eval ".dependencies[${1}].configmap.contentFromFile.\"${key}\"" "${testPlan}")
+    filePath=$(realpath "${testDir}/${filePath}")
+    if [ ! -f "${filePath}" ]; then
+      echo "ConfigMap content file not found: ${filePath}."
+      exit 1
+    fi
+    args+=("--from-file=${key}=${filePath}")
+  done < <(yq eval ".dependencies[${1}].configmap.contentFromFile // {} | keys | .[]" "${testPlan}")
+
+  if ! kubectl get namespace "${namespace}" > /dev/null 2>&1; then
+    echo "#### Creating namespace: ${namespace}"
+    kubectl create namespace "${namespace}"
+  fi
+
+  kubectl create configmap "${name}" --namespace "${namespace}" "${args[@]}" --dry-run=client -o yaml | kubectl apply -f -
+}
+
 echo; echo "### Deploying dependencies"
 deployFluxCD
 kubectl apply -f "${scriptDir}/manifests/tests/namespace-toolbox.yaml"
@@ -239,6 +274,11 @@ if [ "${dependencyCount}" -ge 0 ]; then
       kubectl "${verb}" -f "${manifestFile}"
     fi
 
+    dependencyConfigMap=$(yq eval ".dependencies[${i}].configmap // \"\"" "${testPlan}")
+    if [ -n "${dependencyConfigMap}" ]; then
+      deployConfigMap "${i}"
+    fi
+
     sleep=$(yq eval ".dependencies[${i}].sleepAfter // \"\"" "${testPlan}")
     if [ -n "${sleep}" ]; then
       sleep "${sleep}"
@@ -252,23 +292,6 @@ deployTestMetricsSnapshot() {
   kubectl apply -f "${scriptDir}/manifests/tests/helm-repository-toolbox.yaml"
 
   values="$(yq eval "{\"spec\": {\"values\": .tests[${1}].values // {}}}" "${testPlan}")"
-
-  # If a baseline data file is configured and present next to the test plan, inject
-  # its contents so the chart runs a comparison. If it is missing (e.g. the first
-  # run), the chart only generates a snapshot to seed the baseline.
-  dataFile="$(yq eval ".tests[${1}].dataFile // \"\"" "${testPlan}")"
-  if [ -z "${dataFile}" ]; then
-    echo "A metrics-snapshot test requires a 'dataFile' to be set in the test plan."
-    exit 1
-  fi
-  dataFilePath="${testDir}/${dataFile}"
-  if [ -f "${dataFilePath}" ]; then
-    dataFilePath="$(realpath "${dataFilePath}")"
-    echo "#### Using baseline data file: ${dataFilePath}"
-    values="$(DATA_FILE="${dataFilePath}" yq eval '.spec.values.previousData = load_str(strenv(DATA_FILE))' <(echo "${values}"))"
-  else
-    echo "#### No baseline data file found at ${dataFilePath}; a new snapshot will be generated"
-  fi
 
   testDependencies='{"spec": {"dependsOn": []}}'
   helmReleaseCount="$(kubectl get helmreleases --all-namespaces --no-headers --output custom-columns=namespace:.metadata.namespace,name:.metadata.name | grep -c -v "^toolbox" || true)"

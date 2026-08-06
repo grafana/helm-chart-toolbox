@@ -6,7 +6,7 @@ type: application
 icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
 sources:
   - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/metrics-snapshot
-version: 0.1.0
+version: 0.2.0
 appVersion: 0.1.0
 maintainers:
   - email: pete.wall@grafana.com

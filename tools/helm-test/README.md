@@ -102,8 +102,34 @@ FluxCD is always deployed to the cluster, because this helps managing deploying 
 | `file`       | The path to a Kubernetes manifest file to be applied.                                                | No       |         |
 | `manifest`   | A Kubernetes manifest file to be applied as inline YAML.                                             | No       |         |
 | `url`        | The URL to a manifest file that will be fetched and applied.                                         | No       |         |
+| `configmap`  | A `ConfigMap` to create from inline content and/or files. See below.                                | No       |         |
 | `sleep`      | Number of seconds to wait before deploying this dependency (or use alone for a gap between entries). | No       | `0`     |
 | `sleepAfter` | Number of seconds to wait after deploying this dependency.                                           | No       | `0`     |
+
+#### `configmap`
+
+Creates a Kubernetes `ConfigMap` from inline content and/or the contents of files. The namespace is created if it does
+not already exist.
+
+| Field             | Description                                                                                         | Required | Default   |
+|-------------------|-----------------------------------------------------------------------------------------------------|----------|-----------|
+| `name`            | The name of the `ConfigMap` to create.                                                              | Yes      |           |
+| `namespace`       | The namespace in which to create the `ConfigMap`.                                                   | No       | `default` |
+| `content`         | A map of keys to literal string values.                                                             | No       | `{}`      |
+| `contentFromFile` | A map of keys to file paths (relative to the test plan) whose contents are stored under each key.   | No       | `{}`      |
+
+```yaml
+dependencies:
+  - configmap:
+      name: my-configmap
+      namespace: default
+      content:
+        my-key: my-value
+  - configmap:
+      name: my-other-configmap
+      contentFromFile:
+        settings.yaml: path/to/settings.yaml
+```
 
 ### Tests
 
@@ -115,4 +141,3 @@ the following fields:
 | `type`     | The type of test to be run. Supported types: `query-test`, `kubernetes-objects-test`, `metrics-snapshot`.                                                | Yes      |         |
 | `values`   | The values to be used for the test as inline YAML.                                                                                                        | No       | `{}`    |
 | `args`     | Additional arguments passed to `helm test`, for example `["--timeout", "10m"]`.                                                                          | No       | `[]`    |
-| `dataFile` | Path (relative to the test plan) to a data file for the test. Used by `metrics-snapshot` as the baseline snapshot; injected into the chart's `previousData` value when the file exists. | For `metrics-snapshot` |         |

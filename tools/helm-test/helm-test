@@ -50,13 +50,35 @@ if [ "${DELETE_CLUSTER}" == "true" ]; then
   trap deleteCluster EXIT
 fi
 
-"${scriptDir}/deploy-dependencies" "${testDir}"
+phase=beforeDependencies
+runDiagnosticsOnFailure() {
+  "${scriptDir}/run-diagnostics" "${phase}" "${testDir}" --result failure
+}
 
+# Dependencies
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
+"${scriptDir}/deploy-dependencies" "${testDir}"
+phase=afterDependencies
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
+
+# Subject
+phase=beforeSubject
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
 "${scriptDir}/deploy-subject" "${testDir}"
+phase=afterSubject
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
 
 runUninstall=$(yq eval '.subject.uninstall // false' "${testPlan}")
 if [ "${runUninstall}" == "true" ]; then
   "${scriptDir}/uninstall-subject" "${testDir}"
 fi
 
+# Subject
+phase=beforeTest
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
 "${scriptDir}/run-tests" "${testDir}"
+phase=afterTest
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"
+
+phase=final
+"${scriptDir}/run-diagnostics" "${phase}" "${testDir}"

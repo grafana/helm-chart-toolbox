@@ -1,0 +1,27 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: list-helm-installs
+subject:
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy-operator
+  postInstall:
+    files:
+      - alloy.yaml
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: grafana
+
+diagnostics:
+  - phases: [beforeDependencies, afterDependencies, afterSubject]
+    when: always
+    commands:
+      - helm list --all-namespaces
+  - phases: [final]
+    when: always
+    commands:
+      - kubectl get pods
+#      - kubectl logs ...

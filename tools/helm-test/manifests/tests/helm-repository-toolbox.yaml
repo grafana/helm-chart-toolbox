@@ -8,4 +8,6 @@ spec:
   interval: 1m
   url: https://github.com/grafana/helm-chart-toolbox
   ref:
-    branch: main
+    # TEMPORARY: pointed at the branch that adds remotecfg-components-test so it can
+    # be tested locally before merge. REVERT to `main` before opening/merging the PR.
+    branch: add-remotecfg-components-test

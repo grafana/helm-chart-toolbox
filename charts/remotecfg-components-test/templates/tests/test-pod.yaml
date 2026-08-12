@@ -1,0 +1,88 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "helm-chart-toolbox.remotecfg-components-test.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
+    app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion }}
+    helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $key, $val := $.Values.pod.extraLabels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "0"
+    {{- range $key, $val := $.Values.pod.extraAnnotations }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccountName: {{ include "helm-chart-toolbox.remotecfg-components-test.serviceAccountName" . }}
+  {{- if or $.Values.global.image.pullSecrets $.Values.image.pullSecrets }}
+  imagePullSecrets:
+    {{- if $.Values.global.image.pullSecrets }}
+    {{- toYaml $.Values.global.image.pullSecrets | nindent 8 }}
+    {{- else }}
+    {{- toYaml $.Values.image.pullSecrets | nindent 8 }}
+    {{- end }}
+  {{- end }}
+  restartPolicy: Never
+  {{- with $.Values.pod.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- with $.Values.pod.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- if $.Values.initialDelay }}
+  initContainers:
+    - name: wait
+      image: "{{ $.Values.global.image.registry | default $.Values.image.registry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+      command: ["bash", "-c", "sleep {{ $.Values.initialDelay | int }}"]
+  {{- end }}
+  containers:
+    - name: remotecfg-components-test
+      image: "{{ $.Values.global.image.registry | default $.Values.image.registry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+      command:
+        - bash
+        - -c
+        - |
+          for i in $(seq 1 {{ $.Values.attempts | int }}); do
+            echo "Running test... ($i/{{ $.Values.attempts | int }})"
+            if /usr/bin/remotecfg-components-test.sh /etc/test/checks.json; then
+              exit 0
+            fi
+            sleep {{ $.Values.delay | int }}
+          done
+          exit 1
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        seccompProfile:
+          type: RuntimeDefault
+      env:
+        - name: KUBERNETES_VERSION
+          value: "{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}"
+      {{- with $.Values.pod.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.envFrom }}
+      envFrom:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumeMounts:
+        - name: queries
+          mountPath: /etc/test
+  volumes:
+    - name: queries
+      configMap:
+        name: {{ include "helm-chart-toolbox.remotecfg-components-test.fullname" $ }}

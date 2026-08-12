@@ -1,0 +1,91 @@
+#!/bin/bash
+# Assert that each collector is running (at least) the Alloy components Fleet
+# Management holds for its cluster.
+#
+# Input:
+#   $1               checks.json — {"checks":[{"role":..,"namespace":..,"selector":..}]}
+#   EXPECTED_<ROLE>  env var (role upper-cased) — space-separated expected component types
+#
+# One evaluation pass: exit 0 if every check passes, 1 otherwise. The test Pod
+# wraps this in the attempts/delay retry loop, so no internal retry here.
+
+set -uo pipefail
+
+usage() {
+  echo "USAGE: remotecfg-components-test.sh checks.json"
+  echo "Assert collectors run the Alloy components Fleet Management holds for the cluster."
+}
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  usage
+  exit 0
+fi
+if [ -z "${1:-}" ]; then
+  usage
+  exit 1
+fi
+
+checksFile="${1}"
+port="${ALLOY_PORT:-12345}"
+api="/api/v0/web/remotecfg/components"
+
+kubectl=$(command -v kubectl)
+if [ -n "${KUBERNETES_VERSION:-}" ] && command -v "kubectl-${KUBERNETES_VERSION}" >/dev/null 2>&1; then
+  kubectl=$(command -v "kubectl-${KUBERNETES_VERSION}")
+fi
+
+# Print the dotted Alloy component types running on all Running pods matching a
+# label selector, across each pod's remotecfg root and any sub-modules.
+running_components() {
+  local namespace="${1}" selector="${2}" ip body module
+  "${kubectl}" get pods --namespace "${namespace}" --selector "${selector}" \
+    --field-selector=status.phase=Running \
+    --output 'jsonpath={range .items[*]}{.status.podIP}{"\n"}{end}' 2>/dev/null |
+    while read -r ip; do
+      [ -z "${ip}" ] && continue
+      body=$(curl --silent --fail --max-time 10 "http://${ip}:${port}${api}") || continue
+      echo "${body}" | jq -r '.[].name'
+      echo "${body}" | jq -r '.[].moduleID // empty' | sort -u | while read -r module; do
+        [ -z "${module}" ] && continue
+        curl --silent --fail --max-time 10 "http://${ip}:${port}/api/v0/web/remotecfg/modules/${module}/components" |
+          jq -r '.[].name' 2>/dev/null || true
+      done
+    done |
+    grep -E '^[a-z][a-z0-9]*(\.[a-z0-9_]+)+$' | sort -u
+}
+
+exitCode=0
+count=$(jq '.checks | length' "${checksFile}")
+for idx in $(seq 0 $((count - 1))); do
+  role=$(jq -r ".checks[${idx}].role" "${checksFile}")
+  namespace=$(jq -r ".checks[${idx}].namespace // \"default\"" "${checksFile}")
+  selector=$(jq -r ".checks[${idx}].selector" "${checksFile}")
+
+  varName="EXPECTED_$(echo "${role}" | tr '[:lower:]' '[:upper:]')"
+  expected="${!varName:-}"
+  if [ -z "${expected// /}" ]; then
+    echo "[${role} ${selector}] FAIL: expected component set is empty (Fleet Management holds no ${role} pipeline for this cluster)"
+    exitCode=1
+    continue
+  fi
+
+  running=$(running_components "${namespace}" "${selector}")
+
+  missing=""
+  read -ra expectedArr <<<"${expected}"
+  for component in "${expectedArr[@]}"; do
+    grep -qxF "${component}" <<<"${running}" || missing="${missing} ${component}"
+  done
+
+  if [ -n "${missing// /}" ]; then
+    echo "[${role} ${selector}] FAIL: missing:${missing}"
+    exitCode=1
+  else
+    echo "[${role} ${selector}] OK: running all ${#expectedArr[@]} expected components"
+  fi
+done
+
+if [ "${exitCode}" -eq 0 ]; then
+  echo "All expected components present"
+fi
+exit "${exitCode}"

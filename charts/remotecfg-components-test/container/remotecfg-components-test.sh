@@ -34,22 +34,29 @@ if [ -n "${KUBERNETES_VERSION:-}" ] && command -v "kubectl-${KUBERNETES_VERSION}
   kubectl=$(command -v "kubectl-${KUBERNETES_VERSION}")
 fi
 
-# Print the dotted Alloy component types running on all Running pods matching a
-# label selector, across each pod's remotecfg root and any sub-modules.
+pod_module_components() {
+  local ip="${1}" moduleID="${2}" url body
+  if [ -z "${moduleID}" ]; then
+    url="http://${ip}:${port}${api}"
+  else
+    url="http://${ip}:${port}/api/v0/web/remotecfg/modules/${moduleID}/components"
+  fi
+  body=$(curl --silent --fail --max-time 10 "${url}") || return 0
+  echo "${body}" | jq -r '.[].name'
+  echo "${body}" | jq -r '.[].createdModuleIDs[]? // empty' | sort -u | while read -r child; do
+    [ -z "${child}" ] && continue
+    pod_module_components "${ip}" "${child}"
+  done
+}
+
 running_components() {
-  local namespace="${1}" selector="${2}" ip body module
+  local namespace="${1}" selector="${2}" ip
   "${kubectl}" get pods --namespace "${namespace}" --selector "${selector}" \
     --field-selector=status.phase=Running \
     --output 'jsonpath={range .items[*]}{.status.podIP}{"\n"}{end}' 2>/dev/null |
     while read -r ip; do
       [ -z "${ip}" ] && continue
-      body=$(curl --silent --fail --max-time 10 "http://${ip}:${port}${api}") || continue
-      echo "${body}" | jq -r '.[].name'
-      echo "${body}" | jq -r '.[].moduleID // empty' | sort -u | while read -r module; do
-        [ -z "${module}" ] && continue
-        curl --silent --fail --max-time 10 "http://${ip}:${port}/api/v0/web/remotecfg/modules/${module}/components" |
-          jq -r '.[].name' 2>/dev/null || true
-      done
+      pod_module_components "${ip}" ""
     done |
     grep -E '^[a-z][a-z0-9]*(\.[a-z0-9_]+)+$' | sort -u
 }

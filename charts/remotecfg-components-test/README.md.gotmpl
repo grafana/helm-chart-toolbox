@@ -1,0 +1,50 @@
+<!--
+(NOTE: Do not edit README.md directly. It is a generated file!)
+(      To make changes, please modify README.md.gotmpl and run `helm-docs`)
+-->
+
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+{{ template "chart.badgesSection" . }}
+{{ template "chart.description" . }}
+{{ template "chart.homepageLine" . }}
+
+## How it works
+
+This chart asserts that Grafana Alloy collectors are running the components that Fleet Management holds for their
+cluster. For each check it lists the collector's pods by label selector, queries each pod's
+`/api/v0/web/remotecfg/components` API, and verifies that every one of those pods is running at least the expected set
+of components for that collector `role`. The expected sets are supplied as `EXPECTED_<ROLE>` environment variables (the role, upper-cased) —
+typically via `envFrom` a ConfigMap derived from Fleet Management.
+
+## Usage
+
+To use this chart, supply the expected component sets (via `envFrom`) and a list of per-collector checks:
+
+```yaml
+envFrom:
+  - configMapRef:
+      name: expected-components   # provides EXPECTED_DAEMONSET / EXPECTED_DEPLOYMENT
+checks:
+  - role: daemonset
+    namespace: default
+    selector: app.kubernetes.io/name=alloy,app.kubernetes.io/instance=grafana-cloud-alloy-daemonset
+  - role: deployment
+    namespace: default
+    selector: app.kubernetes.io/name=alloy,app.kubernetes.io/instance=grafana-cloud-alloy-deployment
+```
+
+A check fails if any of the collector's pods is missing an expected component, if no pods match the selector, or if the
+expected set for a role is empty (which means Fleet Management served nothing for that role). The test pod retries
+`attempts` times with `delay` seconds between runs.
+
+<!-- textlint-disable terminology -->
+{{ template "chart.maintainersSection" . }}
+<!-- textlint-enable terminology -->
+<!-- markdownlint-disable no-bare-urls -->
+<!-- markdownlint-disable list-marker-space -->
+{{ template "chart.sourcesSection" . }}
+<!-- markdownlint-enable list-marker-space -->
+<!-- markdownlint-enable no-bare-urls -->
+{{ template "chart.requirementsSection" . }}
+{{ template "chart.valuesSection" . }}

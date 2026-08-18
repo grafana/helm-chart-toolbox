@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+name: remotecfg-components-test
+description: A Helm Chart Toolbox test asserting that collectors run the Alloy components Fleet Management holds for their cluster, read from each Alloy pod's remotecfg components API.
+type: application
+icon: https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg
+sources:
+  - https://github.com/grafana/helm-chart-toolbox/tree/main/charts/remotecfg-components-test
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+  - email: pete.wall@grafana.com
+    name: petewall
+dependencies: []

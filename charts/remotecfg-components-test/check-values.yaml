@@ -1,0 +1,14 @@
+---
+# -- The name for the expected component set, matched to an `EXPECTED_<ROLE>`
+# environment variable (the role, upper-cased) supplied via `envFrom`. Must be a
+# valid environment-variable name segment (`[A-Za-z0-9_]`); avoid hyphens.
+# @section -- Check
+role: ""
+
+# -- The namespace of the collector's Alloy pods.
+# @section -- Check
+namespace: ""
+
+# -- A label selector identifying the collector's Alloy pods.
+# @section -- Check
+selector: ""

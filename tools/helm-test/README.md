@@ -112,7 +112,7 @@ the following fields:
 
 | Field      | Description                                                                                                                                              | Required | Default |
 |------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|----------|---------|
-| `type`     | The type of test to be run. Supported types: `query-test`, `kubernetes-objects-test`, `metrics-snapshot`.                                                | Yes      |         |
+| `type`     | The type of test to be run. Supported types: `query-test`, `kubernetes-objects-test`, `metrics-snapshot`, `remotecfg-components-test`.                                                | Yes      |         |
 | `values`   | The values to be used for the test as inline YAML.                                                                                                        | No       | `{}`    |
 | `args`     | Additional arguments passed to `helm test`, for example `["--timeout", "10m"]`.                                                                          | No       | `[]`    |
 | `dataFile` | Path (relative to the test plan) to a data file for the test. Used by `metrics-snapshot` as the baseline snapshot; injected into the chart's `previousData` value when the file exists. | For `metrics-snapshot` |         |

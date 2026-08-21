@@ -132,13 +132,14 @@ function traces_query {
 
 function profiles_query {
     echo "Running profiles query: ${1}..."
-    if ! result=$(profilecli query series --output=json --query="${1}" 2>&1); then
+    # Capture stdout only; profilecli logs to stderr, which would corrupt the JSON.
+    if ! result=$(profilecli query series --output=json --query="${1}"); then
       echo "Query failed!"
-      echo "Error: ${result}"
+      echo "Result: ${result}"
       return 1
     fi
 
-    resultCount=$(echo "${result}" | jq --slurp 'length')
+    resultCount=$(echo "${result}" | jq '.series | length')
     if [ -z "${resultCount}" ]; then
       echo "Query returned an invalid response"
       echo "Result: ${result}"

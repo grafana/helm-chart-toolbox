@@ -1,0 +1,25 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: pyroql
+subject:
+  path: ../../..
+  values:
+    # Give Alloy time to collect and push a first round of profiles.
+    initialDelay: 30
+    tests:
+      - env:
+          PROFILECLI_URL: http://pyroscope.pyroscope.svc:4040
+        queries:
+          - query: '{service_name="alloy"}'
+            type: pyroql
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: pyroscope
+  - file: profiles-generator.yaml
+
+tests:
+  - type: helm-test

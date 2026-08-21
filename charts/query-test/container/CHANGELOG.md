@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+* Fix Pyroscope query parsing
+* Update Pyroscope CLI to 2.2.1
+
 ## 1.1.0
 
 * `logql` queries now accept `expect.count` to assert an exact result count, including `0` to verify that no log entries match. (@petewall)

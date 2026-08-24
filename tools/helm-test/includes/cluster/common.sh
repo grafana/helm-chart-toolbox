@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+requireCommand() {
+  local cmd=$1
+  if ! command -v "${cmd}" > /dev/null 2>&1; then
+    echo "Required command '${cmd}' is not installed or not in PATH. Please install it and try again." >&2
+    exit 1
+  fi
+}
+
 getClusterName() {
   local testPlan=$1
   testDir=$(dirname "$(readlink -f "${testPlan}")")

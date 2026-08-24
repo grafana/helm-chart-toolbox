@@ -1,0 +1,10 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: k3d
+subject:
+  repository: https://grafana.github.io/helm-charts
+  chart: alloy
+
+cluster:
+  type: k3d

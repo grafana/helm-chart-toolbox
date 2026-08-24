@@ -2,6 +2,7 @@
 
 createGKECluster() {
   local testPlan=$1
+  requireCommand gcloud
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(gcloud container clusters list --format="value(name)")
@@ -45,6 +46,7 @@ createGKECluster() {
 
 createGKEAutopilotCluster() {
   local testPlan=$1
+  requireCommand gcloud
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(gcloud container clusters list --format="value(name)")
@@ -88,6 +90,7 @@ createGKEAutopilotCluster() {
 
 deleteGKECluster() {
   local testPlan=$1
+  requireCommand gcloud
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(gcloud container clusters list --format="value(name)")

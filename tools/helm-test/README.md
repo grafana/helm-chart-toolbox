@@ -67,7 +67,7 @@ This section defines the Kubernetes cluster to be created and used for testing. 
 
 | Field          | Description                                                                        | Required | Default                        |
 |----------------|------------------------------------------------------------------------------------|----------|--------------------------------|
-| `cluster.type` | The type of Kubernetes cluster to be created. Supported types: `kind`, `minikube`. | Yes      |                                |
+| `cluster.type` | The type of Kubernetes cluster to be created. Supported types: `kind`, `k3d`, `minikube`. | Yes      |                                |
 | `cluster.name` | The name of the new Kubernetes cluster.                                            | No       | `<test plan name>-test-cluster |
 
 #### Kind
@@ -76,6 +76,15 @@ This section defines the Kubernetes cluster to be created and used for testing. 
 |----------------------|------------------------------------------------------------|----------|---------|
 | `cluster.config`     | The Kind cluster configuration to be used, as inline YAML. | No       | `{}`    |
 | `cluster.configFile` | The path to a Kind cluster configuration to be used.       | No       |         |
+
+#### K3d
+
+[k3d](https://k3d.io) runs k3s (a lightweight, certified Kubernetes distribution) inside Docker.
+
+| Field                | Description                                               | Required | Default |
+|----------------------|-----------------------------------------------------------|----------|---------|
+| `cluster.config`     | The k3d cluster configuration to be used, as inline YAML. | No       | `{}`    |
+| `cluster.configFile` | The path to a k3d cluster configuration to be used.       | No       |         |
 
 #### Minikube
 

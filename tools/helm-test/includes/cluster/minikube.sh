@@ -2,6 +2,7 @@
 
 createMinikubeCluster() {
   local testPlan=$1
+  requireCommand minikube
   command=(minikube start)
 
   driver="$(yq eval -r '.cluster.driver' "${testPlan}")"
@@ -22,6 +23,7 @@ createMinikubeCluster() {
 }
 
 deleteMinikubeCluster() {
+  requireCommand minikube
   if minikube status; then
     minikube delete
   fi

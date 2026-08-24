@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 
-createKindCluster() {
+createK3dCluster() {
   local testPlan=$1
-  requireCommand kind
+  requireCommand k3d
   testDir="$(dirname "${testPlan}")"
   clusterName=$(getClusterName "${testPlan}")
 
-  listClustersCommand=(kind get clusters)
-  createClusterCommand=(kind create cluster --name "${clusterName}")
+  listClustersCommand=(k3d cluster list --output json)
+  createClusterCommand=(k3d cluster create "${clusterName}")
 
   clusterConfig=$(yq eval '.cluster.config // ""' "${testPlan}")
   clusterConfigFile=$(yq eval '.cluster.configFile // ""' "${testPlan}")
   if [ -n "${clusterConfig}" ]; then
-    configFile=$(mktemp /tmp/kind-cluster-config.yaml.XXXXXX)
+    configFile=$(mktemp /tmp/k3d-cluster-config.yaml.XXXXXX)
     trap 'rm -f "${configFile}"' EXIT  # Ensure the temporary file is removed on exit
     echo "${clusterConfig}" > "${configFile}"
     createClusterCommand+=(--config "${configFile}")
@@ -25,17 +25,17 @@ createKindCluster() {
     createClusterCommand+=(--config "${clusterConfigFile}")
   fi
 
-  if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
+  if ! "${listClustersCommand[@]}" | yq eval -p=json '.[].name' | grep -qx "${clusterName}"; then
     echo "${createClusterCommand[@]}"
     "${createClusterCommand[@]}"
   fi
 }
 
-deleteKindCluster() {
+deleteK3dCluster() {
   local testPlan=$1
-  requireCommand kind
+  requireCommand k3d
   clusterName=$(getClusterName "${testPlan}")
-  deleteClusterCommand=(kind delete cluster --name "${clusterName}")
+  deleteClusterCommand=(k3d cluster delete "${clusterName}")
 
   totalAttempts=30
   for attempt in $(seq 1 "${totalAttempts}"); do

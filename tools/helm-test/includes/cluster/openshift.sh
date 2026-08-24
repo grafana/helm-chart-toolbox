@@ -2,6 +2,7 @@
 
 createOpenShiftCluster() {
   local testPlan=$1
+  requireCommand openshift-install
   testDir="$(dirname "${testPlan}")"
   clusterName=$(getClusterName "${testPlan}")
 
@@ -34,6 +35,7 @@ createOpenShiftCluster() {
 
 deleteOpenShiftCluster() {
   local testPlan=$1
+  requireCommand openshift-install
   clusterName=$(getClusterName "${testPlan}")
   clusterInstallerFilesDir="${testDir}/${clusterName}-installer-files"
 

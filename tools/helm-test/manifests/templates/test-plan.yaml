@@ -70,15 +70,15 @@ subject:
 
 # Define the cluster to use for the test, including how to create it and any configuration needed.
 cluster:
-  # -- The type of cluster to use for the test. Valid options are "kind" or "minikube"
+  # -- The type of cluster to use for the test. Valid options are "kind", "k3d", or "minikube"
   # @section -- Cluster
   type: ""
 
-  # -- Configuration to use when creating the cluster as inline YAML. Supported for "kind" clusters only.
+  # -- Configuration to use when creating the cluster as inline YAML. Supported for "kind" and "k3d" clusters only.
   # @section -- Cluster
   config:
 
-  # -- Path to a configuration file to use when creating the cluster. Supported for "kind" clusters only.
+  # -- Path to a configuration file to use when creating the cluster. Supported for "kind" and "k3d" clusters only.
   # @section -- Cluster
   configFile:
 

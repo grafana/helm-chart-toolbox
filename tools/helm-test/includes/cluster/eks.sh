@@ -2,6 +2,7 @@
 
 createEKSCluster() {
   local testPlan=$1
+  requireCommand eksctl
   testDir="$(dirname "${testPlan}")"
   clusterName=$(getClusterName "${testPlan}")
 
@@ -34,6 +35,7 @@ createEKSCluster() {
 
 deleteEKSCluster() {
   local testPlan=$1
+  requireCommand eksctl
   clusterName=$(getClusterName "${testPlan}")
 
   getClusterCommand=(eksctl get cluster --name "${clusterName}")

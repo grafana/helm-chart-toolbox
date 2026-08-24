@@ -2,6 +2,7 @@
 
 createAKSCluster() {
   local testPlan=$1
+  requireCommand az
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(az aks list --query '[].name')
@@ -21,6 +22,7 @@ createAKSCluster() {
 
 deleteAKSCluster() {
   local testPlan=$1
+  requireCommand az
   clusterName=$(getClusterName "${testPlan}")
 
   listClustersCommand=(az aks list --query '[].name')

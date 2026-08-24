@@ -33,7 +33,7 @@ jobs:
           cloudTests=()
           for testPlan in */test-plan.yaml; do
             clusterType="$(yq '.cluster.type' "${testPlan}")"
-            if [[ "${clusterType}" == "kind" ]] || [[ "${clusterType}" == "minikube" ]]; then
+            if [[ "${clusterType}" == "kind" ]] || [[ "${clusterType}" == "minikube" ]] || [[ "${clusterType}" == "k3d" ]]; then
               localTests+=("$(dirname "${testPlan}")")
             else
               cloudTests+=("$(dirname "${testPlan}")")
@@ -77,6 +77,9 @@ jobs:
         uses: medyagh/setup-minikube@e9e035a86bbc3caea26a450bd4dbf9d0c453682e  # v0.0.21
         with:
           start: false
+
+      - name: Install k3d CLI
+        run: curl -sfL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
       - name: Run test
         run: helm-chart-toolbox/tools/helm-test/helm-test "${TEST_DIRECTORY}"

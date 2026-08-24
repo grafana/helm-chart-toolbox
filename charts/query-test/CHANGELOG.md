@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.7
+
+* Fix parsing of Pyroscope CLI output (@petewall)
+* Update Pyroscope CLI to 2.2.1 (@petewall)
+
 ## 0.3.6
 
 * Update Profile CLI to 2.2.0 (@petewall)

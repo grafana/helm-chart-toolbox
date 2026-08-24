@@ -31,8 +31,9 @@ schema-mods/definitions/test.schema.json: definitions/test-values.yaml
 	docker run --rm --platform linux/amd64 --volume $(shell pwd)/definitions:/definitions ghcr.io/grafana/helm-chart-toolbox-schema-generator --file /$< > $@
 
 # Container image
+CONTAINER_SHELL_SCRIPTS=$(wildcard container/*.sh)
 build-image: .temp/image-built-$(IMAGE_VERSION)
-.temp/image-built-$(IMAGE_VERSION): container/Dockerfile container/query-test.sh
+.temp/image-built-$(IMAGE_VERSION): container/Dockerfile $(CONTAINER_SHELL_SCRIPTS)
 	docker buildx build --platform $(PLATFORMS) --tag $(IMAGE):$(IMAGE_VERSION) container
 	mkdir -p .temp && touch .temp/image-built-${IMAGE_VERSION}
 

@@ -1,0 +1,23 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: promql
+subject:
+  path: ../../..
+  values:
+    tests:
+      - env:
+          PROMETHEUS_URL: http://prometheus-server.prometheus.svc:9090/api/v1/query
+        queries:
+          - query: alloy_build_info{}
+            type: promql
+
+cluster:
+  type: kind
+
+dependencies:
+  - preset: prometheus
+  - file: metrics-generator.yaml
+
+tests:
+  - type: helm-test

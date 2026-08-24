@@ -110,8 +110,19 @@ function logs_query {
 
 function traces_query {
   echo "Running TraceQL query: ${TEMPO_URL}?q=${1}..."
-  result=$(curl -sk --get -u "${TEMPO_USER}:${TEMPO_PASS}" "${TEMPO_URL}" --data-urlencode "q=${1}")
+  if ! result=$(curl -sSk --fail-with-body --get -u "${TEMPO_USER}:${TEMPO_PASS}" "${TEMPO_URL}" --data-urlencode "q=${1}" 2>&1); then
+    echo "Query failed!"
+    echo "Error: ${result}"
+    return 1
+  fi
+
   resultCount=$(echo "${result}" | jq '.traces | length')
+  if [ -z "${resultCount}" ]; then
+    echo "Query returned an invalid response"
+    echo "Result: ${result}"
+    return 1
+  fi
+
   if [ "${resultCount}" -eq 0 ]; then
     echo "Query returned no results"
     echo "Result: ${result}"
@@ -121,8 +132,20 @@ function traces_query {
 
 function profiles_query {
     echo "Running profiles query: ${1}..."
-    result=$(profilecli query series --query="${1}")
-    resultCount=$(echo "${result}" 2>/dev/null | jq --slurp 'length')
+    # Capture stdout only; profilecli logs to stderr, which would corrupt the JSON.
+    if ! result=$(profilecli query series --output=json --query="${1}"); then
+      echo "Query failed!"
+      echo "Result: ${result}"
+      return 1
+    fi
+
+    resultCount=$(echo "${result}" | jq '.series | length')
+    if [ -z "${resultCount}" ]; then
+      echo "Query returned an invalid response"
+      echo "Result: ${result}"
+      return 1
+    fi
+
     if [ "${resultCount}" -eq 0 ]; then
       echo "Query returned no results"
       echo "Result: ${result}"

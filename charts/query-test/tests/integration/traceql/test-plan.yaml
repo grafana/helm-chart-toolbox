@@ -1,0 +1,36 @@
+---
+apiVersion: helm-chart-toolbox.grafana.com/v1
+kind: TestPlan
+name: traceql
+subject:
+  path: ../../..
+  values:
+    # Give Alloy and the trace generator a moment to push data before the first query.
+    initialDelay: 30
+    tests:
+      - env:
+          TEMPO_URL: http://tempo.tempo.svc:3200/api/search
+        queries:
+          - query: '{ resource.service.name = "traceql-test" }'
+            type: traceql
+
+cluster:
+  type: kind
+
+dependencies:
+  # Deploy Tempo to store traces. Make sure the OTLP receivers are enabled.
+  - preset: tempo
+    overrides:
+      tempo:
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+              http:
+                endpoint: 0.0.0.0:4318
+  # Deploy Alloy as an OTLP gateway (fed by a trace generator) that writes to Tempo.
+  - file: traces-generator.yaml
+
+tests:
+  - type: helm-test

@@ -86,6 +86,11 @@ fi
 set -eo pipefail  # Exit immediately if a command fails.
 shopt -s nullglob # Required when a chart does not use mod files.
 
+if ! yq . "${CHART_DIR}/values.yaml" > /dev/null; then
+  echo "Failed to parse YAML file: ${CHART_DIR}/values.yaml" 1>&2
+  exit 1
+fi
+
 cd "${CHART_DIR}"
 helm-docs --chart-to-generate . --output-file README.md.generated
 

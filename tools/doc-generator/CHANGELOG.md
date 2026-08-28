@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+* Validate values YAML before generating documentation. (@szelese)
+
 ## 0.2.4
 
 * Update alpine Helm base image to 4.1.3. (@petewall)

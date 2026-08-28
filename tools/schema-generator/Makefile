@@ -28,6 +28,7 @@ clean: ## Clean up generated files
 TEST_INPUTS = $(wildcard tests/*/values.yaml)
 TEST_OUTPUTS = $(TEST_INPUTS:tests/%/values.yaml=tests/%/actual.schema.json)
 TEST_TARGETS = $(TEST_INPUTS:tests/%/values.yaml=tests/%/run-test)
+INVALID_YAML_FILE = $(shell pwd)/tests/invalid-yaml/values.yaml.invalid
 
 .SECONDEXPANSION:
 tests/%/actual.schema.json: tests/%/values.yaml $$(wildcard tests/%/schema-mods/*) .temp/image-built-$(VERSION)
@@ -39,7 +40,23 @@ tests/%/run-test: tests/%/actual.schema.json ../../node_modules/.bin/json-diff $
 
 	../../node_modules/.bin/json-diff $(shell dirname $<)/expected.schema.json $<
 
-test: $(TEST_TARGETS) ## Test schema generation
+.PHONY: test-invalid-yaml
+test-invalid-yaml: .temp/image-built-$(VERSION)
+	@! docker run --rm \
+		--volume "$(INVALID_YAML_FILE):/input/values.yaml:ro" \
+		--platform linux/amd64 \
+		$(IMAGE):$(VERSION) \
+		--file /input/values.yaml > /dev/null 2> .temp/invalid-yaml-file.log
+	@grep -Fq "Failed to parse YAML file:" .temp/invalid-yaml-file.log
+	@! docker run --rm \
+		--volume "$(INVALID_YAML_FILE):/input/values.yaml:ro" \
+		--platform linux/amd64 \
+		$(IMAGE):$(VERSION) \
+		--chart /input > /dev/null 2> .temp/invalid-yaml-chart.log
+	@grep -Fq "Failed to parse YAML file:" .temp/invalid-yaml-chart.log
+	@rm .temp/invalid-yaml-file.log .temp/invalid-yaml-chart.log
+
+test: $(TEST_TARGETS) test-invalid-yaml ## Test schema generation
 
 ##@ General
 

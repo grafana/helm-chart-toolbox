@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+* Validate values YAML before generating a schema. (@szelese)
+
 ## 0.2.5
 
 * Update alpine Helm base image to 4.1.4. (@petewall)

@@ -1,5 +1,5 @@
 FROM grafana/pyroscope:2.2.1@sha256:70cf34fcb09d286080df909c33a95432df2a78ed4f6613b5e998ac17f90e4c3d AS pyroscope
-FROM ubuntu:26.04@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox
 LABEL org.opencontainers.image.description="Helm Chart Toolbox - Query Test"

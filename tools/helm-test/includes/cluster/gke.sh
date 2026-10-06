@@ -24,7 +24,7 @@ createGKECluster() {
       createClusterCommand+=(--zone "${zone}")
   fi
 
-  if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
+  if ! "${listClustersCommand[@]}" | grep -q "^${clusterName}$"; then
     argsString="$(yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}")"
     IFS=" " read -r -a args <<< "${argsString}"
     createClusterCommand+=("${args[@]}")
@@ -68,7 +68,7 @@ createGKEAutopilotCluster() {
       createClusterCommand+=(--zone "${zone}")
   fi
 
-  if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
+  if ! "${listClustersCommand[@]}" | grep -q "^${clusterName}$"; then
     argsString="$(yq eval -r -o=json '.cluster.args | join(" ")' "${testPlan}")"
     IFS=" " read -r -a args <<< "${argsString}"
     createClusterCommand+=("${args[@]}")
@@ -112,7 +112,7 @@ deleteGKECluster() {
       deleteClusterCommand+=(--zone "${zone}")
   fi
 
-  if "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
+  if "${listClustersCommand[@]}" | grep -q "^${clusterName}$"; then
     echo "${deleteClusterCommand[@]}"
     "${deleteClusterCommand[@]}"
   fi

@@ -25,7 +25,7 @@ createKindCluster() {
     createClusterCommand+=(--config "${clusterConfigFile}")
   fi
 
-  if ! "${listClustersCommand[@]}" | grep -q "${clusterName}"; then
+  if ! "${listClustersCommand[@]}" | grep -q "^${clusterName}$"; then
     echo "${createClusterCommand[@]}"
     "${createClusterCommand[@]}"
   fi

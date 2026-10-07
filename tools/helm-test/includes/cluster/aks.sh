@@ -5,7 +5,7 @@ createAKSCluster() {
   requireCommand az
   clusterName=$(getClusterName "${testPlan}")
 
-  listClustersCommand=(az aks list --query '[].name')
+  listClustersCommand=(az aks list --query '[].name' -o tsv)
   createClusterCommand=(az aks create --yes --name "${clusterName}")
   getCredentialsCommand=(az aks get-credentials --name "${clusterName}")
 
@@ -25,7 +25,7 @@ deleteAKSCluster() {
   requireCommand az
   clusterName=$(getClusterName "${testPlan}")
 
-  listClustersCommand=(az aks list --query '[].name')
+  listClustersCommand=(az aks list --query '[].name' -o tsv)
   deleteClusterCommand=(az aks delete --yes --name "${clusterName}")
 
   if "${listClustersCommand[@]}" | grep -q "^${clusterName}$"; then

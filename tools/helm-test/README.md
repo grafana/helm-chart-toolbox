@@ -38,6 +38,7 @@ The `test-plan.yaml` file defines the test plan for the Helm chart. It includes 
 | `name`         | The name of the test plan.                                     | Yes      |         |
 | `subject`      | The Helm chart to be tested.                                   | Yes      |         |
 | `cluster`      | The Kubernetes cluster to be created and used for testing.     | Yes      |         |
+| `deployFlux`   | Whether FluxCD should be deployed to the cluster.               | No       | `true`  |
 | `dependencies` | The dependencies to be deployed before testing the Helm chart. | No       | `[]`    |
 | `tests`        | The tests to be run after the Helm chart has been deployed.    | No       | `[]`    |
 
@@ -101,7 +102,11 @@ This section defines the dependencies to be deployed before testing the Helm cha
 services, or other Helm charts that the chart under test depends on. It is an array of objects, each with the following
 fields:
 
-FluxCD is always deployed to the cluster, because this helps managing deploying the dependencies and tests in parallel.
+FluxCD is deployed to the cluster by default, because this helps managing deploying the dependencies and tests in
+parallel. Presets and `helm-test`-style test packages (`query-test`, `kubernetes-objects-test`, `metrics-snapshot`,
+`remotecfg-components-test`) rely on FluxCD and will fail if it isn't deployed. If your test plan only uses
+dependencies that don't require FluxCD (e.g. `file`, `directory`, `manifest`, or `url` entries), you can set the
+top-level `deployFlux: false` to skip installing it.
 
 | Field        | Description                                                                                          | Required | Default |
 |--------------|------------------------------------------------------------------------------------------------------|----------|---------|

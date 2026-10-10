@@ -58,13 +58,6 @@ jobs:
           persist-credentials: 'false'
           path: source
 
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: 'false'
-          repository: grafana/helm-chart-toolbox
-          path: helm-chart-toolbox
-
       - name: Install Flux CLI
         uses: fluxcd/flux2/action@b9c17924adb533d3617ec7de97a7b0f4acc07b39  # v2.9.6
 
@@ -82,7 +75,7 @@ jobs:
         run: curl -sfL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
       - name: Run test
-        run: helm-chart-toolbox/tools/helm-test/helm-test "${TEST_DIRECTORY}"
-        env:
-          TEST_DIRECTORY: "source/tools/helm-test/tests/${{ matrix.test }}"
-          DELETE_CLUSTER: true
+        uses: ./source/tools/helm-test
+        with:
+          test-directory: source/tools/helm-test/tests/${{ matrix.test }}
+          delete-cluster: "true"

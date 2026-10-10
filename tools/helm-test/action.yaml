@@ -1,0 +1,29 @@
+---
+name: Helm Test
+description: Run a Helm chart integration test plan.
+
+inputs:
+  test-directory:
+    description: Path to the directory containing test-plan.yaml.
+    required: false
+    default: "."
+  create-cluster:
+    description: Whether to create the cluster before running the test plan.
+    required: false
+    default: "true"
+  delete-cluster:
+    description: Whether to delete the cluster after running the test plan.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Run helm-test
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        TEST_DIRECTORY: ${{ inputs.test-directory }}
+        CREATE_CLUSTER: ${{ inputs.create-cluster }}
+        DELETE_CLUSTER: ${{ inputs.delete-cluster }}
+      run: bash "${ACTION_PATH}/helm-test" "${TEST_DIRECTORY}"

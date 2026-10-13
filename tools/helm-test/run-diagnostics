@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+usage() {
+  echo "USAGE: run-diagnostics <phase> [<test-dir>] [--result <success|failure>]"
+  echo ""
+  echo "Runs diagnostics defined in test-plan.yaml for the specified phase."
+  echo ""
+  echo "Arguments:"
+  echo "  <phase>              - Diagnostic phase to execute. One of:"
+  echo "                         beforeDependencies, afterDependencies, beforeSubject,"
+  echo "                         afterSubject, beforeTest, afterTest, final."
+  echo "  <test-dir>           - The test directory. Defaults to the current directory."
+  echo ""
+  echo "Options:"
+  echo "  --result <status>    - Previous step result (success or failure). Defaults to success."
+  echo "  -h, --help           - Show this help text."
+}
+
+to_lower() {
+  echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+is_true() {
+  case "$(to_lower "$1")" in
+    1|true|yes|on) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+should_run_diagnostic() {
+  local when
+  when=$(to_lower "$1")
+  local result="$2"
+
+  case "${when}" in
+    ""|always) return 0 ;;
+    onfailure) [[ "${result}" == "failure" ]] && return 0 || return 1 ;;
+    onsuccess) [[ "${result}" == "success" ]] && return 0 || return 1 ;;
+    *)
+      echo "Skipping diagnostic with unsupported 'when' value: ${1}" >&2
+      return 1
+      ;;
+  esac
+}
+
+run_command_with_grouping() {
+  local grouping="$1"
+  local title="$2"
+  shift 2
+  local -a cmd=("$@")
+
+  if [ "${grouping}" = "github" ]; then
+    echo "::group::${title}"
+  fi
+
+  echo "### Diagnostic: ${title}"
+  echo "+ ${cmd[*]}"
+  set +e
+  "${cmd[@]}"
+  local exitCode=$?
+  set -e
+  if [ "${exitCode}" -ne 0 ]; then
+    echo "Command failed with exit code ${exitCode}" >&2
+  fi
+
+  if [ "${grouping}" = "github" ]; then
+    echo "::endgroup::"
+  fi
+}
+
+phase=""
+testDir=""
+result="success"
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -h|-help|--help)
+      usage
+      exit 0
+      ;;
+    --result)
+      if [ "$#" -lt 2 ]; then
+        echo "Missing value for --result" >&2
+        usage
+        exit 1
+      fi
+      result="$2"
+      shift
+      ;;
+    *)
+      if [ -z "${phase}" ]; then
+        phase="$1"
+      elif [ -z "${testDir}" ]; then
+        testDir="$1"
+      else
+        echo "Unexpected argument: $1" >&2
+        usage
+        exit 1
+      fi
+      ;;
+  esac
+  shift
+done
+
+if [ -z "${phase}" ]; then
+  echo "Phase is required." >&2
+  usage
+  exit 1
+fi
+
+case "${phase}" in
+  beforeDependencies|afterDependencies|beforeSubject|afterSubject|beforeTest|afterTest|final)
+    ;;
+  *)
+    echo "Invalid phase: ${phase}" >&2
+    usage
+    exit 1
+    ;;
+esac
+
+result=$(to_lower "${result}")
+case "${result}" in
+  success|failure)
+    ;;
+  *)
+    echo "Invalid value for --result: ${result}" >&2
+    usage
+    exit 1
+    ;;
+esac
+
+if [ -z "${testDir}" ]; then
+  testDir=$(pwd)
+elif [ ! -d "${testDir}" ]; then
+  echo "Argument is not a valid directory: ${testDir}" >&2
+  usage
+  exit 1
+fi
+
+testPlan=$(realpath "${testDir}/test-plan.yaml")
+if [ ! -f "${testPlan}" ]; then
+  echo "test-plan.yaml file not found in ${testDir}" >&2
+  usage
+  exit 1
+fi
+
+diagnosticCount=$(yq eval '.diagnostics // [] | length' "${testPlan}")
+if [ "${diagnosticCount}" -eq 0 ]; then
+  exit 0
+fi
+
+matchingDiagnostics=0
+
+for diagnosticIndex in $(seq 0 $((diagnosticCount - 1))); do
+  phaseMatches=0
+  while IFS= read -r diagnosticPhase; do
+    if [ -z "${diagnosticPhase}" ]; then
+      continue
+    fi
+    if [ "${diagnosticPhase}" = "${phase}" ]; then
+      phaseMatches=1
+      break
+    fi
+  done < <(
+    yq eval -r ".diagnostics[${diagnosticIndex}] | (.phases // [(.phase // \"final\")])[]?" "${testPlan}"
+  )
+
+  if [ "${phaseMatches}" -ne 1 ]; then
+    continue
+  fi
+
+  diagnosticWhen=$(yq eval -r ".diagnostics[${diagnosticIndex}].when // \"onFailure\"" "${testPlan}")
+  if ! should_run_diagnostic "${diagnosticWhen}" "${result}"; then
+    continue
+  fi
+
+  useLogGrouping=$(yq eval -r ".diagnostics[${diagnosticIndex}].useLogGrouping // true" "${testPlan}")
+  groupingMode="plain"
+  if is_true "${useLogGrouping}" && [ -n "${GITHUB_ACTIONS:-}" ]; then
+    groupingMode="github"
+  fi
+
+  commandCount=$(yq eval ".diagnostics[${diagnosticIndex}].commands // [] | length" "${testPlan}")
+  if [ "${commandCount}" -eq 0 ]; then
+    echo "Diagnostic #${diagnosticIndex} has no commands defined; skipping."
+    continue
+  fi
+
+  matchingDiagnostics=$((matchingDiagnostics + 1))
+
+  for commandIndex in $(seq 0 $((commandCount - 1))); do
+    rawCommand=$(yq eval -r ".diagnostics[${diagnosticIndex}].commands[${commandIndex}] // \"\"" "${testPlan}")
+    commandString="${rawCommand#"${rawCommand%%[!$' \t\r\n']*}"}"
+    commandString="${commandString%"${commandString##*[!$' \t\r\n']}"}"
+
+    if [ -z "${commandString}" ]; then
+      echo "Skipping empty command for diagnostic #${diagnosticIndex} (index ${commandIndex})."
+      continue
+    fi
+
+    if [[ "${commandString}" == *';'* || "${commandString}" == *'|'* || "${commandString}" == *'&'* ]]; then
+      echo "Skipping command '${commandString}' because chaining characters (;, |, &) are not allowed."
+      continue
+    fi
+
+    IFS=' ' read -r -a commandArgs <<< "${commandString}"
+    if [ "${#commandArgs[@]}" -lt 2 ]; then
+      echo "Skipping command '${commandString}' because it must include a verb after the executable."
+      continue
+    fi
+
+    allowedCommand=0
+    case "${commandArgs[0]}" in
+      kubectl)
+        case "${commandArgs[1]}" in
+          get|logs) allowedCommand=1 ;;
+        esac
+        ;;
+      helm)
+        case "${commandArgs[1]}" in
+          list) allowedCommand=1 ;;
+        esac
+        ;;
+    esac
+
+    if [ "${allowedCommand}" -ne 1 ]; then
+      echo "Skipping command '${commandString}' because it must start with 'kubectl get', 'kubectl logs', or 'helm list'."
+      continue
+    fi
+
+    run_command_with_grouping "${groupingMode}" "${commandString}" "${commandArgs[@]}"
+  done
+done

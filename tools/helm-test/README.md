@@ -29,6 +29,25 @@ run-tests
 delete-cluster
 ```
 
+### Using it from GitHub Actions
+
+```yaml
+steps:
+  - name: Run Helm test
+    uses: grafana/helm-chart-toolbox/tools/helm-test@main
+    with:
+      test-directory: path/to/test-plan
+      delete-cluster: "true"
+```
+
+Ensure the test plan is available in the workflow workspace and that the required tools and cloud credentials are configured before running the action.
+
+| Input | Default |
+|---|---|
+| `test-directory` | `.` |
+| `create-cluster` | `true` |
+| `delete-cluster` | `false` |
+
 ## Test Plans
 
 The `test-plan.yaml` file defines the test plan for the Helm chart. It includes the following sections:

@@ -51,7 +51,7 @@ done
 namespaceArg=()
 releaseNamespace=$(yq eval '.subject.namespace // ""' "${testPlan}")
 if [ -n "${releaseNamespace}" ]; then
-  namespaceArg=(--namespace "${releaseNamespace}" --create-namespace)
+  namespaceArg=(--namespace "${releaseNamespace}")
 fi
 
 if [ "${subjectType}" == "manifest" ]; then

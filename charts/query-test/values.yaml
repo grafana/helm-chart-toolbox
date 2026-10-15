@@ -55,7 +55,7 @@ image:
   repository: grafana/helm-chart-toolbox-query-test
   # -- Test pod image tag. Default is the chart version.
   # @section -- Image settings
-  tag: ""
+  tag: "@sha256:75885486d6e87df959b1cbd385bf611beaecc32293e449dcc586f72f2a2c0ede"
   # -- Optional set of image pull secrets.
   # @section -- Image settings
   pullSecrets: []

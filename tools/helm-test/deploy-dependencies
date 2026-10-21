@@ -49,7 +49,7 @@ deployFluxCD() {
     # Skip client-side validation because OpenShift's API server may not be reachable for OpenAPI schema download
     kubectl apply --validate=false -f "${fluxManifestDir}/flux-manifest.yaml"
   else
-    flux install --components=source-controller,helm-controller 2> /dev/null
+    flux install --components=source-controller,helm-controller
   fi
 }
 

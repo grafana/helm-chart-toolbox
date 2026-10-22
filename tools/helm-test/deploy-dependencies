@@ -37,6 +37,17 @@ if [ ! -f "${testPlan}" ]; then
 fi
 
 # Start of script
+waitForApiDiscovery() {
+  for _ in $(seq 1 30); do
+    if kubectl api-resources > /dev/null 2>&1; then
+      return 0
+    fi
+    sleep 10
+  done
+  echo "Kubernetes API discovery did not become ready"
+  kubectl api-resources > /dev/null
+}
+
 deployFluxCD() {
   echo "#### Deploying dependency: FluxCD"
   clusterType=$(yq eval '.cluster.type // ""' "${testPlan}")
@@ -171,6 +182,7 @@ deployTestRemotecfgComponentsTest() {
 }
 
 echo; echo "### Deploying dependencies"
+waitForApiDiscovery
 deployFlux=$(yq eval '.deployFlux // true' "${testPlan}")
 if [ "${deployFlux}" == "true" ]; then
   deployFluxCD

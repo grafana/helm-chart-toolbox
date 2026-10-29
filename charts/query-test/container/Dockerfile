@@ -1,4 +1,4 @@
-FROM grafana/pyroscope:2.2.1@sha256:70cf34fcb09d286080df909c33a95432df2a78ed4f6613b5e998ac17f90e4c3d AS pyroscope
+FROM grafana/pyroscope:2.4.2@sha256:ef9b48976386aa2781e84664dfdba7cc33a1b6793c0cc9d130812173a926ca1f AS pyroscope
 FROM ubuntu:26.04@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
 
 LABEL org.opencontainers.image.source=https://github.com/grafana/helm-chart-toolbox

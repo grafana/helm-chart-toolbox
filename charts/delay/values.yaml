@@ -43,7 +43,7 @@ image:
   repository: library/busybox
   # -- Test pod image tag.
   # @section -- Image settings
-  tag: latest
+  tag: latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
   # -- Optional set of image pull secrets.
   # @section -- Image settings
   pullSecrets: []

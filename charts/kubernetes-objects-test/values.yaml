@@ -66,7 +66,7 @@ image:
   repository: grafana/helm-chart-toolbox-kubernetes-objects-test
   # -- Test pod image tag. Default is the chart version.
   # @section -- Image settings
-  tag: ""
+  tag: "@sha256:04bb7755f42870dda349caab0d6cb1068fc0cec685153c85a5fc427074c0b7d4"
   # -- Optional set of image pull secrets.
   # @section -- Image settings
   pullSecrets: []

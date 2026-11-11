@@ -185,7 +185,20 @@ deployTestRemotecfgComponentsTest() {
 deployConfigMap() {
   local name namespace key value filePath
   name=$(yq eval ".dependencies[${1}].configmap.name" "${testPlan}")
-  namespace=$(yq eval ".dependencies[${1}].configmap.namespace // \"default\"" "${testPlan}")
+  namespace=$(yq eval ".dependencies[${1}].configmap.namespace // .dependencies[${1}].namespace // \"default\"" "${testPlan}")
+  if [ -z "${name}" ] || [ "${name}" == "null" ]; then
+    echo "ConfigMap dependency at index ${1} requires a non-empty 'name'."
+    exit 1
+  fi
+
+  local contentCount fileCount
+  contentCount=$(yq eval ".dependencies[${1}].configmap.content // {} | length" "${testPlan}")
+  fileCount=$(yq eval ".dependencies[${1}].configmap.contentFromFile // {} | length" "${testPlan}")
+  if [ "$((contentCount + fileCount))" -eq 0 ]; then
+    echo "ConfigMap dependency '${name}' requires at least one entry in 'content' or 'contentFromFile'."
+    exit 1
+  fi
+
   echo "#### Deploying ConfigMap dependency: ${name} (namespace: ${namespace})"
 
   local args=()

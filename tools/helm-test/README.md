@@ -147,7 +147,7 @@ not already exist.
 | Field             | Description                                                                                         | Required | Default   |
 |-------------------|-----------------------------------------------------------------------------------------------------|----------|-----------|
 | `name`            | The name of the `ConfigMap` to create.                                                              | Yes      |           |
-| `namespace`       | The namespace in which to create the `ConfigMap`.                                                   | No       | `default` |
+| `namespace`       | The namespace in which to create the `ConfigMap`. Defaults to the dependency's `namespace`, then `default`. | No | `default` |
 | `content`         | A map of keys to literal string values.                                                             | No       | `{}`      |
 | `contentFromFile` | A map of keys to file paths (relative to the test plan) whose contents are stored under each key.   | No       | `{}`      |
 

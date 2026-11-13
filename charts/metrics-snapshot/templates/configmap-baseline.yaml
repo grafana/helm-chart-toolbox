@@ -1,4 +1,6 @@
-{{- if .Values.previousData }}
+{{- /* Only create the baseline ConfigMap from inline data. When an existing ConfigMap is
+       referenced via `previousDataConfigMap.name`, it is mounted directly instead. */ -}}
+{{- if and .Values.previousData (not .Values.previousDataConfigMap.name) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

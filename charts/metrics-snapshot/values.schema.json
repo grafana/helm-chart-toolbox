@@ -98,6 +98,17 @@
         "previousData": {
             "type": "string"
         },
+        "previousDataConfigMap": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "query": {
             "type": "string"
         },

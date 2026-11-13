@@ -23,7 +23,11 @@
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| dependencies | list | `[]` | The list of dependencies to be deployed before deploying the Helm chart test subject. There are a number of presets available, such as "prometheus", "loki", "tempo", "pyroscope", and "grafana". Each preset can have their default values overridden by specifying an `overrides` section with changes to its values. You can also specify a directory containing YAML files to apply, or a path to an individual manifest file. Finally, you can specify a manifest as inline YAML. |
+| dependencies | list | `[]` | The list of dependencies to be deployed before deploying the Helm chart test subject. There are a number of presets available, such as "prometheus", "loki", "tempo", "pyroscope", and "grafana". Each preset can have their default values overridden by specifying an `overrides` section with changes to its values. You can also specify a directory containing YAML files to apply, or a path to an individual manifest file. You can specify a manifest as inline YAML. Finally, you can create a `ConfigMap` from inline content or files (see below). |
+| dependencies[].configmap.name | string | `""` | The name of the `ConfigMap` to create. |
+| dependencies[].configmap.namespace | string | `"default"` | The namespace in which to create the `ConfigMap`. The namespace is created if it does not already exist. |
+| dependencies[].configmap.content | object | `{}` | A map of keys to literal string values to store in the `ConfigMap`. |
+| dependencies[].configmap.contentFromFile | object | `{}` | A map of keys to file paths (relative to the test plan) whose contents are stored in the `ConfigMap` under the given key. |
 
 ### Subject
 
@@ -50,5 +54,4 @@
 | tests | list | `[]` | The list of test to be run after deploying the Helm chart test subject. Supported test types are: [query-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/query-test), [kubernetes-objects-test](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/kubernetes-objects-test), and [metrics-snapshot](https://github.com/grafana/helm-chart-toolbox/blob/main/charts/metrics-snapshot) |
 | tests[].type | string | `""` | The type of the test to run. |
 | tests[].args | list | `[]` | Additional arguments to pass to the `helm test` command for this test, for example `["--timeout", "10m"]`. |
-| tests[].dataFile | string | `""` | Path (relative to the test plan) to a data file for the test. Used by `metrics-snapshot` as the baseline snapshot; when the file exists it is injected into the chart's `previousData` value. |
 <!-- textlint-enable terminology -->

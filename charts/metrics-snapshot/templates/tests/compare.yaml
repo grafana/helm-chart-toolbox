@@ -1,6 +1,6 @@
 {{- /* The compare pod only runs when a baseline has been provided (weight 1, so it
        runs after generate). It diffs the current metrics against the baseline. */ -}}
-{{- if .Values.previousData }}
+{{- if include "helm-chart-toolbox.metrics-snapshot.hasBaseline" . }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -53,7 +53,7 @@ spec:
         - |
           for i in $(seq 1 {{ .Values.attempts | int }}); do
             echo "Running compare... ($i/{{ .Values.attempts | int }})"
-            /usr/bin/compare.sh /etc/config/config.json /etc/baseline/baseline.yaml
+            /usr/bin/compare.sh /etc/config/config.json /etc/baseline/{{ include "helm-chart-toolbox.metrics-snapshot.baselineKey" . }}
             code=$?
             if [ ${code} -eq 0 ]; then exit 0; fi
             if [ ${code} -eq 2 ]; then exit 2; fi
@@ -85,5 +85,5 @@ spec:
         name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" . }}
     - name: baseline
       configMap:
-        name: {{ include "helm-chart-toolbox.metrics-snapshot.fullname" . }}-baseline
+        name: {{ include "helm-chart-toolbox.metrics-snapshot.baselineConfigMapName" . }}
 {{- end }}

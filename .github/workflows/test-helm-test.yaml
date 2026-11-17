@@ -13,6 +13,17 @@ on:
 permissions: {}
 
 jobs:
+  test-temporary-values-cleanup:
+    name: Test temporary values cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: 'false'
+
+      - name: Run temporary values cleanup test
+        run: bash tools/helm-test/tests/temp-values-cleanup.sh
   list-tests:
     name: List tests
     runs-on: ubuntu-latest
